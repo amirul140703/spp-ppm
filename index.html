@@ -1,0 +1,2498 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPP–PPM | Sistem Pengurusan Persatuan Pustakawan Malaysia</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ppm: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#1d4ed8',
+              700: '#1e40af',
+              800: '#1e3a8a',
+              900: '#0f172a',
+              gold: '#d97706'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @media print {
+      body * { visibility: hidden; }
+      #printable-area, #printable-area * { visibility: visible; }
+      #printable-area { position: absolute; left: 0; top: 0; width: 100%; }
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background-color: #cbd5e1;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased flex h-screen overflow-hidden">
+
+  <!-- ==================== SIDEBAR ==================== -->
+  <aside id="sidebar" class="w-64 bg-slate-900 text-slate-200 flex flex-col flex-shrink-0 transition-all duration-300 z-30">
+    <!-- Header Brand -->
+    <div class="h-16 flex items-center px-4 bg-slate-950 border-b border-slate-800 gap-3">
+      <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white shadow-md">
+        PPM
+      </div>
+      <div class="overflow-hidden">
+        <h1 class="text-sm font-bold tracking-wide text-white leading-tight truncate">SPP–PPM</h1>
+        <p class="text-xs text-blue-400 font-medium truncate">Pustakawan Malaysia</p>
+      </div>
+    </div>
+
+    <!-- User Profile Bar / Active Role Switcher -->
+    <div class="p-3 border-b border-slate-800 bg-slate-900/60">
+      <label class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">Simulasi Peranan Semasa (RBAC):</label>
+      <select id="role-switcher" onchange="switchRole(this.value)" class="w-full bg-slate-800 text-xs text-blue-200 rounded p-1.5 border border-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500">
+        <option value="superadmin">Superadmin (ICT/Penuh)</option>
+        <option value="urus_setia">Urus Setia (Keahlian & Program)</option>
+        <option value="bendahari">Bendahari / Pelulus Kewangan</option>
+        <option value="pegawai_cpd">Pegawai CPD & Latihan</option>
+        <option value="suruhanjaya_undi">Jawatankuasa Pemilihan</option>
+        <option value="ahli" selected>Ahli Biasa (Layan Diri Portal)</option>
+      </select>
+    </div>
+
+    <!-- Navigation Menu Items -->
+    <nav class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-0.5 text-xs font-medium">
+      <div class="text-[10px] uppercase tracking-wider text-slate-500 px-3 pt-2 pb-1 font-semibold">Teras</div>
+      <button onclick="navigateTo('m11_dashboard')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-view="m11_dashboard">
+        <i data-lucide="layout-dashboard" class="w-4 h-4 text-blue-400"></i> Dashboard Utama
+      </button>
+      <button onclick="navigateTo('m02_portal')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-view="m02_portal">
+        <i data-lucide="id-card" class="w-4 h-4 text-emerald-400"></i> Portal Ahli & Kad Digital
+      </button>
+
+      <div class="text-[10px] uppercase tracking-wider text-slate-500 px-3 pt-3 pb-1 font-semibold">Pengurusan Persatuan</div>
+      <button onclick="navigateTo('m01_keahlian')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-view="m01_keahlian">
+        <i data-lucide="users" class="w-4 h-4 text-indigo-400"></i> M01 Keahlian & Semakan
+      </button>
+      <button onclick="navigateTo('m03_yuran')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-view="m03_yuran">
+        <i data-lucide="receipt" class="w-4 h-4 text-amber-400"></i> M03 Yuran & Invois
+      </button>
+      <button onclick="navigateTo('m04_kewangan')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-view="m04_kewangan">
+        <i data-lucide="scale" class="w-4 h-4 text-cyan-400"></i> M04 Kewangan & Lejar
+      </button>
+      <button onclick="navigateTo('m05_program')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-view="m05_program">
+        <i data-lucide="calendar" class="w-4 h-4 text-pink-400"></i> M05 Program & Acara
+      </button>
+      <button onclick="navigateTo('m06_cpd')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-view="m06_cpd">
+        <i data-lucide="award" class="w-4 h-4 text-violet-400"></i> M06 CPD & Sijil
+      </button>
+      <button onclick="navigateTo('m07_mesyuarat')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-view="m07_mesyuarat">
+        <i data-lucide="briefcase" class="w-4 h-4 text-rose-400"></i> M07 AJK & Mesyuarat
+      </button>
+      <button onclick="navigateTo('m08_pilihanraya')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-view="m08_pilihanraya">
+        <i data-lucide="vote" class="w-4 h-4 text-yellow-400"></i> M08 E-Pilihan Raya
+      </button>
+
+      <div class="text-[10px] uppercase tracking-wider text-slate-500 px-3 pt-3 pb-1 font-semibold">Sokongan & Sistem</div>
+      <button onclick="navigateTo('m09_komunikasi')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-view="m09_komunikasi">
+        <i data-lucide="megaphone" class="w-4 h-4 text-sky-400"></i> M09 Komunikasi & E-mel
+      </button>
+      <button onclick="navigateTo('m10_dokumen')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-view="m10_dokumen">
+        <i data-lucide="folder-git-2" class="w-4 h-4 text-teal-400"></i> M10 Arkib & Dokumen
+      </button>
+      <button onclick="navigateTo('m12_tetapan')" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-view="m12_tetapan">
+        <i data-lucide="shield-check" class="w-4 h-4 text-red-400"></i> M12 Audit & Kawalan
+      </button>
+    </nav>
+
+    <!-- Footer Status -->
+    <div class="p-3 border-t border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
+      <span class="flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span>Sistem Aktif</span>
+      </span>
+      <span class="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-300">v1.0 Draf</span>
+    </div>
+  </aside>
+
+  <!-- ==================== MAIN CONTENT WRAPPER ==================== -->
+  <div class="flex-1 flex flex-col h-screen overflow-hidden">
+    
+    <!-- Top Bar -->
+    <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-20">
+      <div class="flex items-center gap-3">
+        <button id="toggle-sidebar-btn" onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-slate-100 text-slate-600 lg:hidden">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+        <div>
+          <div class="text-xs font-semibold text-blue-600 uppercase tracking-wider" id="page-breadcrumb">Persatuan Pustakawan Malaysia</div>
+          <h2 class="text-base font-bold text-slate-800" id="page-title">Papan Pemuka Ahli</h2>
+        </div>
+      </div>
+
+      <!-- Quick Action & Session info -->
+      <div class="flex items-center gap-4">
+        <div class="hidden sm:flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-full text-xs">
+          <i data-lucide="lock" class="w-3.5 h-3.5 text-slate-500"></i>
+          <span class="text-slate-600 font-medium">PDPA 2010 Patuh</span>
+          <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.2 rounded">SSL/TLS 256</span>
+        </div>
+        
+        <div class="flex items-center gap-2 border-l border-slate-200 pl-4">
+          <div class="w-8 h-8 rounded-full bg-blue-700 text-white font-bold flex items-center justify-center text-xs" id="user-avatar">
+            PPM
+          </div>
+          <div class="hidden md:block text-left text-xs">
+            <p class="font-bold text-slate-800 leading-tight" id="user-display-name">Ahmad Zaki bin Yusof</p>
+            <p class="text-slate-500 text-[11px]" id="user-display-role">Ahli Biasa (PPM-8821)</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Dynamic Area -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-100/70 custom-scrollbar" id="main-content">
+      <!-- Container views injected dynamically via JS -->
+    </main>
+  </div>
+
+  <!-- ==================== UNIVERSAL MODAL POPUP ==================== -->
+  <div id="modal-container" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div id="modal-box" class="bg-white rounded-xl shadow-2xl max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div class="px-5 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+        <h3 id="modal-title" class="font-bold text-slate-800 text-sm md:text-base">Tajuk Modal</h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div id="modal-body" class="p-5 overflow-y-auto text-sm text-slate-700 flex-1">
+        <!-- Konten dinamik -->
+      </div>
+      <div id="modal-footer" class="px-5 py-3 border-t border-slate-200 bg-slate-50 flex justify-end gap-2">
+        <button onclick="closeModal()" class="px-4 py-2 text-xs font-semibold rounded-lg border border-slate-300 hover:bg-slate-100 text-slate-700">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast Container -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 max-w-sm w-full bg-slate-900 text-white p-4 rounded-xl shadow-xl flex items-center gap-3">
+    <div id="toast-icon" class="text-emerald-400"></div>
+    <div class="flex-1 text-xs" id="toast-msg">Notifikasi berjaya dihantar.</div>
+  </div>
+
+  <!-- ==================== JAVASCRIPT APPLICATION CORE ==================== -->
+  <script>
+    /*
+      SPP–PPM SINGLE FILE APP ARCHITECTURE
+      - State Management (Database simulasi selaras Model SRS seksyen 5)
+      - RBAC (Role-Based Access Control)
+      - Renderers bagi 12 Modul Fungsian
+      - Audit trail generator (Immutable app-level)
+    */
+
+    // --- 1. STATE & DATA INITIALIZATION ---
+    const DB = {
+      currentUser: {
+        id: "usr-001",
+        name: "Ahmad Zaki bin Yusof",
+        email: "zaki.yusof@perpustakaan.gov.my",
+        memberId: "PPM-8821",
+        category: "Ahli Profesional",
+        institution: "Perpustakaan Negara Malaysia",
+        status: "Aktif",
+        validUntil: "31 Disember 2026",
+        role: "ahli",
+        cpdPoints: 48,
+        qrHash: "PPM-8821:TOKEN-VERIFIED-OCT26"
+      },
+      auditLogs: [
+        { id: "aud-101", timestamp: "2026-10-27 10:14:02", actor: "Urus Setia (Faridah)", action: "SEMAKAN_LULUS", target: "Keahlian (Farhan Haris)", details: "Dokumen ijazah & pengesahan majikan sah" },
+        { id: "aud-102", timestamp: "2026-10-27 11:22:45", actor: "Gateway (Webhook)", action: "BAYARAN_IDEMPOTEN", target: "INV-2026-0891", details: "RM120.00 disahkan via FPX (TxID: FPX-771829)" },
+        { id: "aud-103", timestamp: "2026-10-27 13:05:10", actor: "Bendahari (Noraini)", action: "BAUCAR_DILULUSKAN", target: "VCH-2026-014", details: "Penganjuran Bengkel Pengkatalogan Bahan Digital" }
+      ],
+      applications: [
+        { id: "APP-0941", name: "Siti Nurhaliza binti Bakar", ic: "940812-14-5542", category: "Ahli Profesional", org: "Universiti Malaya", date: "2026-10-25", status: "under_review", docs: "ijazah_blis.pdf, pengesahan_pustakawan.pdf" },
+        { id: "APP-0942", name: "Muhammad Daniel bin Azman", ic: "990103-01-6111", category: "Ahli Pelajar", org: "UiTM Rembau", date: "2026-10-26", status: "query", docs: "kad_matrik.pdf" },
+        { id: "APP-0943", name: "Khadijah binti Othman", ic: "880522-08-5920", category: "Ahli Institusi", org: "Pustaka Negeri Sarawak", date: "2026-10-27", status: "submitted", docs: "surat_rasmi_permohonan.pdf" }
+      ],
+      invoices: [
+        { no: "INV-2026-0891", desc: "Yuran Tahunan Keahlian Profesional 2026", amount: 120.00, dueDate: "2026-11-30", status: "paid", receiptNo: "RES-PPM-4491", idempotencyKey: "idem-tx-0891" },
+        { no: "INV-2026-0902", desc: "Pendaftaran Persidangan Pustakawan Kebangsaan", amount: 250.00, dueDate: "2026-11-15", status: "issued", receiptNo: null, idempotencyKey: "idem-tx-0902" },
+        { no: "INV-2026-0744", desc: "Yuran Pembaharuan Keahlian 2025", amount: 120.00, dueDate: "2025-12-31", status: "paid", receiptNo: "RES-PPM-3112", idempotencyKey: "idem-tx-0744" }
+      ],
+      vouchers: [
+        { id: "VCH-2026-014", claimant: "Mohd Fauzi (Penyelaras)", purpose: "Sewa Dewan & Jamuan Bengkel RDA", amount: 1450.00, status: "approved", approver: "Noraini (Bendahari)", date: "2026-10-22" },
+        { id: "VCH-2026-015", claimant: "Faridah (Urus Setia)", purpose: "Percetakan Jurnal PPM Jilid 42", amount: 3200.00, status: "submitted", approver: "Menunggu Kelulusan", date: "2026-10-26" }
+      ],
+      journalEntries: [
+        { id: "JRN-8801", date: "2026-10-27", desc: "Terimaan yuran keahlian INV-2026-0891", debitAcc: "1001-Akaun Bank Utama", debit: 120.00, creditAcc: "4001-Hasil Yuran Ahli", credit: 120.00 },
+        { id: "JRN-8802", date: "2026-10-22", desc: "Bayaran pendahuluan bengkel VCH-2026-014", debitAcc: "5020-Perbelanjaan Latihan", debit: 1450.00, creditAcc: "1001-Akaun Bank Utama", credit: 1450.00 }
+      ],
+      events: [
+        { id: "EVT-01", title: "Seminar Kebangsaan Perpustakaan Digital 2026", date: "18-19 November 2026", venue: "Hotel Everly Putrajaya", fee: 180, seatsTotal: 120, seatsTaken: 94, cpd: 15, status: "published" },
+        { id: "EVT-02", title: "Bengkel AI Generatif dalam Pengurusan Arkib & Pusat Sumber", date: "05 Disember 2026", venue: "Bilik Latihan PPM, KL", fee: 90, seatsTotal: 30, seatsTaken: 30, cpd: 8, status: "full" },
+        { id: "EVT-03", title: "Wacana Profesional: Trend Hak Cipta & Repositori Terbuka", date: "15 Disember 2026", venue: "Webinar Zoom", fee: 0, seatsTotal: 300, seatsTaken: 142, cpd: 4, status: "published" }
+      ],
+      cpdClaims: [
+        { id: "CPD-701", title: "Pembentang: IFLA Regional Workshop 2026", type: "Pembentangan", points: 20, status: "approved", approvedBy: "Pegawai CPD", date: "2026-09-14" },
+        { id: "CPD-702", title: "Penerbitan Artikel: 'Metadata Schema in Academic Repositories'", type: "Penerbitan Ilmiah", points: 15, status: "submitted", approvedBy: "-", date: "2026-10-20" },
+        { id: "CPD-703", title: "Kursus Kecerdasan Buatan Untuk Arkivis", type: "Bengkel Luar", points: 10, status: "query", approvedBy: "Pegawai CPD", note: "Sila lampirkan surat kelulusan majikan", date: "2026-10-24" }
+      ],
+      meetings: [
+        { id: "MTG-04", title: "Mesyuarat Majlis PPM Bil. 4/2026", date: "12 November 2026 (10:00 AM)", venue: "Bilik Mesyuarat PPM & Hybrid", status: "Dijadualkan", agenda: "Pengesahan Minit Bil 3, Laporan Kewangan Suku Ke-3, Persediaan AGM" },
+        { id: "MTG-03", title: "Mesyuarat Jawatankuasa IT & Media Bil. 2/2026", date: "15 Oktober 2026", venue: "Google Meet", status: "Minit Disahkan", agenda: "Spesifikasi SRS SPP-PPM, Migrasi Data Lama" }
+      ],
+      actionItems: [
+        { id: "ACT-01", task: "Sediakan draf belanjawan AGM PPM 2027", owner: "Noraini (Bendahari)", deadline: "10 Nov 2026", status: "Dalam Tindakan" },
+        { id: "ACT-02", task: "Muat naik jadual webinar CPD Siri 4", owner: "Faridah (Urus Setia)", deadline: "30 Okt 2026", status: "Selesai" }
+      ],
+      election: {
+        id: "ELC-2026",
+        title: "Pemilihan Majlis Persatuan Pustakawan Malaysia Penggal 2026–2028",
+        status: "Dibuka",
+        cutOffDate: "2026-10-15 (Daftar Pengundi Terkunci)",
+        voterEligibility: "Hanya Ahli Profesional berstatus Aktif sebelum tarikh cut-off",
+        alreadyVoted: false,
+        candidates: [
+          { id: "CND-01", position: "Presiden", name: "Dato' Dr. Hjh. Nafisah binti Ahmad", org: "Pakar Rujuk Maklumat", votesCount: 142 },
+          { id: "CND-02", position: "Presiden", name: "Prof. Madya Dr. Azman bin Mat Isa", org: "Fakulti Pengurusan Maklumat UiTM", votesCount: 129 },
+          { id: "CND-03", position: "Naib Presiden", name: "Pn. Chin Loy Jyoon", org: "Perpustakaan Universiti Malaya", votesCount: 188 },
+          { id: "CND-04", position: "Naib Presiden", name: "En. Aidil Harith", org: "Pustaka Sarawak", votesCount: 83 }
+        ]
+      },
+      documents: [
+        { id: "DOC-01", title: "Perlembagaan Rasmi Persatuan Pustakawan Malaysia", cat: "Dasar & Perlembagaan", version: "v2022.2", classification: "Awam", access: "Semua Ahli" },
+        { id: "DOC-02", title: "Minit Mesyuarat Agung Tahunan Ke-68 (AGM 2025)", cat: "Minit Mesyuarat", version: "v1.0 (Signed)", classification: "Sulit Terhad", access: "Ahli Berdaftar Sahaja" },
+        { id: "DOC-03", title: "Laporan Audit Bebas Penyata Kewangan 2025", cat: "Kewangan", version: "vAudit-Final", classification: "Rahsia Rasmi", access: "Majlis & Juruaudit Sahaja" }
+      ],
+      announcements: [
+        { id: "ANN-01", title: "Peringatan Mesyuarat Agung Tahunan (AGM) Ke-69 & E-Pengundian", date: "24 Okt 2026", audience: "Semua Ahli", status: "Diterbitkan" },
+        { id: "ANN-02", title: "Pemberitahuan Penyerahan Tuntutan CPD Akhir Tahun 2026", date: "18 Okt 2026", audience: "Ahli Profesional", status: "Diterbitkan" }
+      ]
+    };
+
+    // Current state controller
+    let currentActiveView = 'm02_portal';
+
+    // --- 2. ROLE SWITCHING SIMULATION (RBAC) ---
+    function switchRole(newRole) {
+      DB.currentUser.role = newRole;
+      const roleNames = {
+        'superadmin': 'Superadmin (ICT/Penuh)',
+        'urus_setia': 'Pegawai Urus Setia PPM',
+        'bendahari': 'Bendahari & Pelulus Kewangan',
+        'pegawai_cpd': 'Pegawai Semakan CPD',
+        'suruhanjaya_undi': 'Jawatankuasa Pemilihan',
+        'ahli': 'Ahli Biasa (Layan Diri)'
+      };
+      
+      document.getElementById('user-display-role').innerText = roleNames[newRole] || newRole;
+      showToast(`Peranan ditukar kepada: ${roleNames[newRole]}`, 'info');
+      logAuditAction(`TUKAR_PERANAN_SIMULASI`, `Pengguna bertukar ke peranan ${newRole}`);
+      
+      // Refresh current view
+      navigateTo(currentActiveView);
+    }
+
+    // --- 3. AUDIT TRAIL LOGGING (Immutable principle FR-053) ---
+    function logAuditAction(action, details, target = "Sistem") {
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 19).replace('T', ' ');
+      const newLog = {
+        id: `aud-${Math.floor(100 + Math.random() * 900)}`,
+        timestamp: dateStr,
+        actor: `${DB.currentUser.role.toUpperCase()} (${DB.currentUser.name})`,
+        action: action,
+        target: target,
+        details: details
+      };
+      DB.auditLogs.unshift(newLog);
+    }
+
+    // --- 4. TOAST NOTIFICATION SYSTEM ---
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-msg');
+      const toastIcon = document.getElementById('toast-icon');
+
+      toastMsg.innerText = message;
+      if (type === 'success') {
+        toastIcon.innerHTML = `<i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400"></i>`;
+      } else if (type === 'error') {
+        toastIcon.innerHTML = `<i data-lucide="alert-triangle" class="w-5 h-5 text-rose-400"></i>`;
+      } else {
+        toastIcon.innerHTML = `<i data-lucide="info" class="w-5 h-5 text-blue-400"></i>`;
+      }
+      lucide.createIcons();
+
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 3500);
+    }
+
+    // --- 5. MODAL SYSTEM ---
+    function openModal(title, contentHtml, footerHtml = null) {
+      document.getElementById('modal-title').innerText = title;
+      document.getElementById('modal-body').innerHTML = contentHtml;
+      if (footerHtml) {
+        document.getElementById('modal-footer').innerHTML = footerHtml;
+      } else {
+        document.getElementById('modal-footer').innerHTML = `<button onclick="closeModal()" class="px-4 py-2 text-xs font-semibold rounded-lg border border-slate-300 hover:bg-slate-100 text-slate-700">Tutup</button>`;
+      }
+      document.getElementById('modal-container').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeModal() {
+      document.getElementById('modal-container').classList.add('hidden');
+    }
+
+    function toggleSidebar() {
+      const sb = document.getElementById('sidebar');
+      sb.classList.toggle('-translate-x-full');
+    }
+
+    // --- 6. ROUTER & MODULE RENDERERS ---
+    function navigateTo(viewId) {
+      currentActiveView = viewId;
+
+      // Update sidebar state
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        if (btn.getAttribute('data-view') === viewId) {
+          btn.classList.add('bg-blue-600', 'text-white');
+          btn.classList.remove('hover:bg-slate-800', 'text-slate-300');
+        } else {
+          btn.classList.remove('bg-blue-600', 'text-white');
+          btn.classList.add('hover:bg-slate-800', 'text-slate-300');
+        }
+      });
+
+      const titles = {
+        'm11_dashboard': { breadcrumb: 'Sistem Pengurusan Persatuan', title: 'M11 Papan Pemuka Eksekutif & Statistik' },
+        'm02_portal': { breadcrumb: 'Portal Ahli Layan Diri', title: 'M02 Profil Keahlian & Kad Digital Pintar' },
+        'm01_keahlian': { breadcrumb: 'Pengurusan Keahlian', title: 'M01 Permohonan, Semakan & Pangkalan Data' },
+        'm03_yuran': { breadcrumb: 'Pengurusan Kewangan Ahli', title: 'M03 Yuran, Invois & Gerbang Pembayaran' },
+        'm04_kewangan': { breadcrumb: 'Kewangan & Akaun Persatuan', title: 'M04 Baucar Bayaran, Lejar Bergu & Bajet' },
+        'm05_program': { breadcrumb: 'Latihan & Acara PPM', title: 'M05 Program, Pendaftaran & Kehadiran Ber-QR' },
+        'm06_cpd': { breadcrumb: 'Continuous Professional Development', title: 'M06 Tuntutan Mata CPD & Transkrip' },
+        'm07_mesyuarat': { breadcrumb: 'Tadbir Urus & Jawatankuasa', title: 'M07 Pengurusan Majlis, Mesyuarat & Minit' },
+        'm08_pilihanraya': { breadcrumb: 'E-Pilihan Raya Rahsia', title: 'M08 Undian Majlis & Token Pengundi Bebas' },
+        'm09_komunikasi': { breadcrumb: 'Pusat Sebaran Maklumat', title: 'M09 Pengumuman, Notifikasi & E-mel Pukal' },
+        'm10_dokumen': { breadcrumb: 'Pengurusan Rekod & Fail', title: 'M10 Repositori Dokumen, Versi & Arkib' },
+        'm12_tetapan': { breadcrumb: 'Pentadbiran Sistem & Sekuriti', title: 'M12 Log Audit Statutori & Kawalan Akses' }
+      };
+
+      const info = titles[viewId] || { breadcrumb: 'SPP-PPM', title: 'Modul Sistem' };
+      document.getElementById('page-breadcrumb').innerText = info.breadcrumb;
+      document.getElementById('page-title').innerText = info.title;
+
+      const main = document.getElementById('main-content');
+
+      // Dispatch module renderer
+      switch(viewId) {
+        case 'm11_dashboard': renderM11Dashboard(main); break;
+        case 'm02_portal': renderM02Portal(main); break;
+        case 'm01_keahlian': renderM01Keahlian(main); break;
+        case 'm03_yuran': renderM03Yuran(main); break;
+        case 'm04_kewangan': renderM04Kewangan(main); break;
+        case 'm05_program': renderM05Program(main); break;
+        case 'm06_cpd': renderM06CPD(main); break;
+        case 'm07_mesyuarat': renderM07Mesyuarat(main); break;
+        case 'm08_pilihanraya': renderM08Pilihanraya(main); break;
+        case 'm09_komunikasi': renderM09Komunikasi(main); break;
+        case 'm10_dokumen': renderM10Dokumen(main); break;
+        case 'm12_tetapan': renderM12Tetapan(main); break;
+        default: renderM02Portal(main);
+      }
+
+      lucide.createIcons();
+    }
+
+    // =========================================================================
+    // MODUL 02: PORTAL AHLI & KAD DIGITAL (FR-006, FR-007, FR-008, FR-009)
+    // =========================================================================
+    function renderM02Portal(container) {
+      const user = DB.currentUser;
+      container.innerHTML = `
+        <div class="space-y-6">
+          <!-- Banner Pengesahan Status -->
+          <div class="bg-gradient-to-r from-blue-900 to-indigo-900 text-white rounded-2xl p-6 shadow-lg flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+            <div>
+              <div class="inline-flex items-center gap-2 bg-blue-800/80 text-blue-200 text-xs px-2.5 py-1 rounded-full mb-2">
+                <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i> Keahlian Sah & Diperakui
+              </div>
+              <h2 class="text-xl md:text-2xl font-bold">${user.name}</h2>
+              <p class="text-xs md:text-sm text-blue-200 mt-1">${user.category} • No. Ahli: <span class="font-mono font-bold text-amber-300">${user.memberId}</span> • ${user.institution}</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="triggerRenewMembership()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 text-xs font-bold px-4 py-2.5 rounded-lg shadow transition flex items-center gap-2">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i> Perbaharui Keahlian 2027
+              </button>
+              <button onclick="printDigitalCard()" class="bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-4 py-2.5 rounded-lg backdrop-blur border border-white/20 transition flex items-center gap-2">
+                <i data-lucide="printer" class="w-4 h-4"></i> Cetak Kad Rasmi
+              </button>
+            </div>
+          </div>
+
+          <!-- Kad Digital & Butiran Pantas Grid -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- KAD DIGITAL RASMI BER-QR (FR-008) -->
+            <div class="lg:col-span-1">
+              <div id="printable-area" class="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-white rounded-2xl p-6 shadow-xl border border-blue-800/40 relative overflow-hidden flex flex-col justify-between h-[360px]">
+                <!-- Hologram Pattern Watermark -->
+                <div class="absolute -right-12 -bottom-12 w-48 h-48 bg-blue-600/10 rounded-full blur-2xl pointer-events-none"></div>
+                
+                <div class="flex justify-between items-start">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded bg-white p-1 flex items-center justify-center font-black text-blue-900 text-xs shadow">
+                      PPM
+                    </div>
+                    <div>
+                      <h4 class="text-xs font-bold tracking-wider leading-tight">PERSATUAN PUSTAKAWAN MALAYSIA</h4>
+                      <p class="text-[9px] text-blue-300 uppercase">KAD KEAHLIAN DIGITAL RASMI</p>
+                    </div>
+                  </div>
+                  <span class="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-500/30">
+                    AKTIF
+                  </span>
+                </div>
+
+                <div class="my-auto flex items-center gap-4">
+                  <div class="w-16 h-16 rounded-full bg-slate-700 border-2 border-amber-400/80 flex items-center justify-center text-xl font-bold text-slate-200 shadow">
+                    AZ
+                  </div>
+                  <div>
+                    <h5 class="font-bold text-sm text-white">${user.name}</h5>
+                    <p class="text-[11px] text-amber-300 font-semibold">${user.category}</p>
+                    <p class="text-[10px] text-slate-300">${user.institution}</p>
+                    <p class="text-[10px] font-mono text-slate-400 mt-1">ID: ${user.memberId}</p>
+                  </div>
+                </div>
+
+                <!-- QR Code Validasi Integriti (FR-008 Token tidak sensitif) -->
+                <div class="bg-slate-950/70 p-3 rounded-xl border border-slate-800 flex items-center justify-between">
+                  <div class="text-[10px] space-y-0.5">
+                    <div class="text-slate-400">Sah Sehingga:</div>
+                    <div class="font-bold text-slate-100">${user.validUntil}</div>
+                    <div class="text-[8px] font-mono text-emerald-400">Verifikasi: SHA256-SAFE-QR</div>
+                  </div>
+                  <!-- Simulasi Visual QR Code Asli SVG -->
+                  <div class="bg-white p-1 rounded shadow cursor-pointer" onclick="verifyQRToken('${user.qrHash}')" title="Klik untuk uji imbasan pengesahan">
+                    <svg class="w-12 h-12" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect width="25" height="25" fill="white"/>
+                      <path fill-rule="evenodd" clip-rule="evenodd" d="M2 2H9V9H2V2ZM3 3V8H8V3H3ZM4 4H7V7H4V4ZM16 2H23V9H16V2ZM17 3V8H22V3H17ZM18 4H21V7H18V4ZM2 16H9V23H2V16ZM3 17V22H8V17H3ZM4 18H7V21H4V18ZM11 2H14V4H11V2ZM11 6H13V8H11V6ZM14 6H15V9H14V6ZM11 11H13V14H11V11ZM14 11H17V13H14V11ZM18 11H20V14H18V11ZM22 11H23V13H22V11ZM16 14H18V16H16V14ZM21 14H23V17H21V14ZM11 16H13V18H11V16ZM14 18H16V21H14V18ZM18 18H20V20H18V18ZM21 19H23V23H21V19ZM11 21H13V23H11V21ZM16 21H18V23H16V21Z" fill="#0f172a"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              <p class="text-[11px] text-center text-slate-500 mt-2">Imbas kod QR di atas menggunakan pembaca standard untuk mengesahkan ketulenan sijil keahlian rasmi.</p>
+            </div>
+
+            <!-- Ringkasan Metrik Layan Diri & Profil Info -->
+            <div class="lg:col-span-2 space-y-4">
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                  <div class="text-xs text-slate-500">Mata CPD Semasa</div>
+                  <div class="text-2xl font-black text-blue-700 mt-1">${user.cpdPoints} <span class="text-xs font-normal text-slate-500">/ 50 sasaran</span></div>
+                  <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2">
+                    <div class="bg-blue-600 h-1.5 rounded-full" style="width: 96%"></div>
+                  </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                  <div class="text-xs text-slate-500">Program Dihadiri</div>
+                  <div class="text-2xl font-black text-emerald-600 mt-1">8 <span class="text-xs font-normal text-slate-500">acara</span></div>
+                  <div class="text-[11px] text-emerald-600 mt-2">100% Sijil Diperoleh</div>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm col-span-2 sm:col-span-1">
+                  <div class="text-xs text-slate-500">Baki Invois Tertunggak</div>
+                  <div class="text-2xl font-black text-slate-800 mt-1">RM 0.00</div>
+                  <span class="inline-block text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded mt-2 font-medium">Semua Selesai</span>
+                </div>
+              </div>
+
+              <!-- Borang Kemaskini Profil Berkelulusan (FR-007) -->
+              <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+                  <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                    <i data-lucide="user-check" class="w-4 h-4 text-blue-600"></i> Maklumat Ahli & Alamat Surat-Menyurat
+                  </h3>
+                  <span class="text-[11px] text-slate-500">Kemaskini terakhir: 14 Jun 2026</span>
+                </div>
+                <form onsubmit="handleUpdateProfile(event)" class="space-y-4 text-xs">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block font-semibold text-slate-700 mb-1">Nama Penuh (Mengikut Kad Pengenalan)</label>
+                      <input type="text" id="prof-name" value="${user.name}" class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                    </div>
+                    <div>
+                      <label class="block font-semibold text-slate-700 mb-1">Alamat E-mel Rasmi</label>
+                      <input type="email" id="prof-email" value="${user.email}" class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                    </div>
+                    <div>
+                      <label class="block font-semibold text-slate-700 mb-1">Institusi / Majikan Semasa</label>
+                      <input type="text" id="prof-inst" value="${user.institution}" class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                    </div>
+                    <div>
+                      <label class="block font-semibold text-slate-700 mb-1">Kategori Keahlian (Kekal / Melalui Urus Setia)</label>
+                      <input type="text" disabled value="${user.category}" class="w-full bg-slate-100 border border-slate-200 rounded-lg p-2.5 text-slate-500 cursor-not-allowed">
+                    </div>
+                  </div>
+                  <div class="flex justify-end pt-2">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow">
+                      <i data-lucide="save" class="w-4 h-4"></i> Simpan Perubahan Profil
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function printDigitalCard() {
+      window.print();
+    }
+
+    function verifyQRToken(token) {
+      openModal(
+        "Pengesahan Sijil Keahlian Digital (QR Token)",
+        `
+        <div class="text-center py-4 space-y-3">
+          <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+            <i data-lucide="shield-check" class="w-7 h-7"></i>
+          </div>
+          <h4 class="font-bold text-slate-900 text-base">Token Keahlian Sah & Diiktiraf</h4>
+          <p class="text-xs text-slate-600 max-w-sm mx-auto">
+            Token pengesahan kriptografi selamat menunjukkan maklumat berikut adalah berdaftar dalam lejar SPP-PPM:
+          </p>
+          <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-left text-xs font-mono text-slate-700 space-y-1">
+            <div><span class="text-slate-400">Ahli:</span> Ahmad Zaki bin Yusof</div>
+            <div><span class="text-slate-400">No. Ahli:</span> PPM-8821</div>
+            <div><span class="text-slate-400">Kategori:</span> Ahli Profesional</div>
+            <div><span class="text-slate-400">Status Semasa:</span> <span class="text-emerald-600 font-bold">AKTIF SEHINGGA 31 DIS 2026</span></div>
+            <div><span class="text-slate-400">Hash Pengesahan:</span> ${token}</div>
+          </div>
+        </div>
+        `
+      );
+    }
+
+    function handleUpdateProfile(e) {
+      e.preventDefault();
+      DB.currentUser.name = document.getElementById('prof-name').value;
+      DB.currentUser.email = document.getElementById('prof-email').value;
+      DB.currentUser.institution = document.getElementById('prof-inst').value;
+      
+      document.getElementById('user-display-name').innerText = DB.currentUser.name;
+      logAuditAction('KEMASKINI_PROFIL', `Kemaskini profil ahli ${DB.currentUser.memberId}`);
+      showToast('Profil berjaya dikemaskini.');
+      navigateTo('m02_portal');
+    }
+
+    function triggerRenewMembership() {
+      openModal(
+        "Pembaharuan Keahlian Tahunan 2027",
+        `
+        <div class="space-y-3 text-xs">
+          <p class="text-slate-600">Anda sedang memohon pembaharuan keahlian bagi tahun 2027:</p>
+          <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div class="font-bold text-blue-900">Kategori: Ahli Profesional (PPM)</div>
+            <div class="text-blue-700">Kadar Rasmi: <strong>RM 120.00 / Tahun</strong></div>
+            <div class="text-[10px] text-slate-500 mt-1">Tempoh perlindungan: 1 Jan 2027 – 31 Disember 2027</div>
+          </div>
+          <p class="text-[11px] text-slate-500">Invois baharu akan dijana serta-merta ke dalam modul Yuran & Pembayaran anda.</p>
+        </div>
+        `,
+        `
+        <button onclick="closeModal()" class="px-3 py-1.5 text-xs text-slate-600 border border-slate-300 rounded-lg">Batal</button>
+        <button onclick="confirmRenewMembership()" class="px-4 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow">Jana Invois & Bayar</button>
+        `
+      );
+    }
+
+    function confirmRenewMembership() {
+      const newInv = {
+        no: `INV-2027-00${Math.floor(10 + Math.random()*89)}`,
+        desc: "Yuran Tahunan Keahlian Profesional 2027",
+        amount: 120.00,
+        dueDate: "2027-01-31",
+        status: "issued",
+        receiptNo: null,
+        idempotencyKey: `idem-tx-renew-${Date.now()}`
+      };
+      DB.invoices.unshift(newInv);
+      logAuditAction("JANA_INVOIS_PEMBAHARUAN", `Invois ${newInv.no} dijana untuk ahli ${DB.currentUser.memberId}`);
+      closeModal();
+      showToast(`Invois ${newInv.no} berjaya dijana. Sila buat pembayaran.`);
+      navigateTo('m03_yuran');
+    }
+
+    // =========================================================================
+    // MODUL 01: KEAHLIAN (FR-001 hingga FR-005)
+    // =========================================================================
+    function renderM01Keahlian(container) {
+      const isUrusSetiaOrAdmin = ['urus_setia', 'superadmin'].includes(DB.currentUser.role);
+
+      container.innerHTML = `
+        <div class="space-y-6">
+          <!-- Modul Header & Tindakan Permohonan -->
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <div>
+              <h3 class="font-bold text-slate-800 text-base">Pangkalan Data & Semakan Permohonan Keahlian</h3>
+              <p class="text-xs text-slate-500">Aliran kerja: Permohonan → Semakan Urus Setia → Kelulusan → Invois Yuran (FR-003)</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="openNewApplicationModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center gap-1.5 shadow">
+                <i data-lucide="user-plus" class="w-4 h-4"></i> Borang Permohonan Baru
+              </button>
+              ${isUrusSetiaOrAdmin ? `
+              <button onclick="openImportModal()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5">
+                <i data-lucide="file-up" class="w-4 h-4"></i> Import CSV (FR-005)
+              </button>` : ''}
+            </div>
+          </div>
+
+          <!-- Senarai Permohonan Menunggu Tindakan (FR-001, FR-003) -->
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Senarai Permohonan Keahlian Terkini</span>
+              <span class="text-xs bg-blue-100 text-blue-800 font-semibold px-2.5 py-0.5 rounded-full">${DB.applications.length} Rekod</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-100 text-slate-600 font-semibold uppercase tracking-wider text-[10px]">
+                  <tr>
+                    <th class="p-3">ID / Tarikh</th>
+                    <th class="p-3">Pemohon & No. KP</th>
+                    <th class="p-3">Kategori & Institusi</th>
+                    <th class="p-3">Lampiran Diserah</th>
+                    <th class="p-3">Status Semakan</th>
+                    <th class="p-3 text-right">Tindakan Kelulusan</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 font-medium">
+                  ${DB.applications.map(app => `
+                    <tr class="hover:bg-slate-50/80">
+                      <td class="p-3">
+                        <div class="font-bold text-blue-700">${app.id}</div>
+                        <div class="text-[10px] text-slate-400">${app.date}</div>
+                      </td>
+                      <td class="p-3">
+                        <div class="font-semibold text-slate-800">${app.name}</div>
+                        <div class="text-[11px] text-slate-500 font-mono">${app.ic}</div>
+                      </td>
+                      <td class="p-3">
+                        <span class="font-medium text-slate-700">${app.category}</span>
+                        <div class="text-[10px] text-slate-500">${app.org}</div>
+                      </td>
+                      <td class="p-3">
+                        <div class="flex items-center gap-1 text-[11px] text-blue-600 cursor-pointer" onclick="showToast('Memuat turun fail lampiran: ${app.docs}', 'info')">
+                          <i data-lucide="paperclip" class="w-3.5 h-3.5"></i>
+                          <span class="truncate max-w-[150px]">${app.docs}</span>
+                        </div>
+                      </td>
+                      <td class="p-3">
+                        ${getStatusBadge(app.status)}
+                      </td>
+                      <td class="p-3 text-right">
+                        ${isUrusSetiaOrAdmin ? `
+                          <div class="flex justify-end gap-1">
+                            <button onclick="reviewApplication('${app.id}', 'approved')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded text-[11px] font-semibold" title="Luluskan">Lulus</button>
+                            <button onclick="reviewApplication('${app.id}', 'query')" class="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded text-[11px] font-semibold" title="Kuiri Dokumen">Kuiri</button>
+                            <button onclick="reviewApplication('${app.id}', 'rejected')" class="bg-rose-600 hover:bg-rose-700 text-white px-2 py-1 rounded text-[11px] font-semibold" title="Tolak">Tolak</button>
+                          </div>
+                        ` : `
+                          <span class="text-[10px] text-slate-400 italic">Hak Urus Setia Sahaja</span>
+                        `}
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function getStatusBadge(status) {
+      switch(status) {
+        case 'submitted': return `<span class="bg-slate-100 text-slate-700 border border-slate-300 px-2 py-0.5 rounded text-[10px] font-bold">Dihantar</span>`;
+        case 'under_review': return `<span class="bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 rounded text-[10px] font-bold">Dalam Semakan</span>`;
+        case 'query': return `<span class="bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded text-[10px] font-bold">Memerlukan Kuiri</span>`;
+        case 'approved': return `<span class="bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded text-[10px] font-bold">Diluluskan</span>`;
+        case 'rejected': return `<span class="bg-rose-100 text-rose-800 border border-rose-200 px-2 py-0.5 rounded text-[10px] font-bold">Ditolak</span>`;
+        default: return `<span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px]">${status}</span>`;
+      }
+    }
+
+    function reviewApplication(appId, decision) {
+      const app = DB.applications.find(a => a.id === appId);
+      if (!app) return;
+
+      if (decision === 'approved') {
+        app.status = 'approved';
+        logAuditAction('LULUS_PERMOHONAN_KEAHLIAN', `Permohonan ${app.id} (${app.name}) diluluskan. Invois pendaftaran dijana.`, app.id);
+        // Automatik cipta invois mengikut FR-003 & Lampiran A
+        DB.invoices.push({
+          no: `INV-2026-REG${Math.floor(100 + Math.random()*900)}`,
+          desc: `Yuran Pendaftaran Masuk & Keahlian: ${app.name}`,
+          amount: 150.00,
+          dueDate: "2026-11-30",
+          status: "issued",
+          receiptNo: null,
+          idempotencyKey: `idem-reg-${app.id}`
+        });
+        showToast(`Permohonan ${app.id} diluluskan. Invois keahlian dijana.`);
+      } else if (decision === 'query') {
+        const queryReason = prompt("Sila nyatakan catatan kuiri / dokumen tambahan yang diperlukan:", "Sila muat naik transkrip rasmi atau pengesahan ijazah sains perpustakaan.");
+        if (!queryReason) return;
+        app.status = 'query';
+        logAuditAction('KUIRI_PERMOHONAN_KEAHLIAN', `Catatan kuiri untuk ${app.id}: ${queryReason}`, app.id);
+        showToast(`Kuiri dihantar kepada pemohon ${app.id}.`);
+      } else if (decision === 'rejected') {
+        const rejectReason = prompt("Sila nyatakan alasan penolakan:", "Syarat kelayakan akademik profesional tidak dipenuhi.");
+        if (!rejectReason) return;
+        app.status = 'rejected';
+        logAuditAction('TOLAK_PERMOHONAN_KEAHLIAN', `Penolakan ${app.id}: ${rejectReason}`, app.id);
+        showToast(`Permohonan ${app.id} ditolak.`, 'error');
+      }
+      navigateTo('m01_keahlian');
+    }
+
+    function openNewApplicationModal() {
+      openModal(
+        "Borang Permohonan Keahlian PPM (FR-001)",
+        `
+        <form id="new-app-form" onsubmit="submitNewApplication(event)" class="space-y-3 text-xs">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Nama Penuh Pemohon</label>
+            <input type="text" id="app-name" required placeholder="cth: Siti Aminah binti Kassim" class="w-full border border-slate-300 rounded p-2">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">No. Kad Pengenalan</label>
+              <input type="text" id="app-ic" required placeholder="cth: 920401-10-5542" class="w-full border border-slate-300 rounded p-2">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Kategori Dipohon</label>
+              <select id="app-category" class="w-full border border-slate-300 rounded p-2">
+                <option value="Ahli Profesional">Ahli Profesional</option>
+                <option value="Ahli Biasa">Ahli Biasa</option>
+                <option value="Ahli Pelajar">Ahli Pelajar</option>
+                <option value="Ahli Institusi">Ahli Institusi</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Nama Organisasi / Majikan / Universiti</label>
+            <input type="text" id="app-org" required placeholder="cth: Perpustakaan Kuala Lumpur" class="w-full border border-slate-300 rounded p-2">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Muat Naik Dokumen Bukti (Sijil Kelayakan / Perakuan Majikan)</label>
+            <input type="file" id="app-file" class="w-full text-slate-500 border border-slate-300 rounded p-1.5 bg-slate-50">
+            <p class="text-[10px] text-slate-400 mt-1">Format dibenarkan: PDF, JPG, PNG (Maks 5MB)</p>
+          </div>
+          <div class="p-2.5 bg-amber-50 border border-amber-200 rounded text-[11px] text-amber-900">
+            <strong>Pengesanan Pendua (FR-002):</strong> Sistem akan menyemak padanan No. KP dan E-mel secara automatik bagi mengelakkan pertindihan rekod.
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-3 py-1.5 border border-slate-300 rounded text-slate-600">Batal</button>
+            <button type="submit" class="px-4 py-1.5 bg-blue-600 text-white rounded font-bold">Hantar Permohonan</button>
+          </div>
+        </form>
+        `
+      );
+    }
+
+    function submitNewApplication(e) {
+      e.preventDefault();
+      const name = document.getElementById('app-name').value;
+      const ic = document.getElementById('app-ic').value;
+      const cat = document.getElementById('app-category').value;
+      const org = document.getElementById('app-org').value;
+
+      // Duplicate check (FR-002)
+      const duplicate = DB.applications.find(a => a.ic === ic);
+      if (duplicate) {
+        alert("RALAT FR-002: Rekod permohonan dengan No. KP ini telah wujud dalam sistem!");
+        return;
+      }
+
+      const newId = `APP-09${Math.floor(50 + Math.random()*49)}`;
+      DB.applications.unshift({
+        id: newId,
+        name: name,
+        ic: ic,
+        category: cat,
+        org: org,
+        date: new Date().toISOString().slice(0, 10),
+        status: "submitted",
+        docs: "dokumen_kelayakan_upload.pdf"
+      });
+
+      logAuditAction('PERMOHONAN_KEAHLIAN_BARU', `Pemohon ${name} (${ic}) mendaftar kategori ${cat}`, newId);
+      closeModal();
+      showToast(`Permohonan ${newId} berjaya dihantar untuk semakan urus setia.`);
+      navigateTo('m01_keahlian');
+    }
+
+    function openImportModal() {
+      openModal(
+        "Import Data Ahli Lama (FR-005)",
+        `
+        <div class="space-y-3 text-xs">
+          <p class="text-slate-600">Muat naik fail CSV/Excel untuk migrasi data keahlian legasi dengan semakan ralat automatik:</p>
+          <div class="border-2 border-dashed border-slate-300 p-6 rounded-xl text-center bg-slate-50">
+            <i data-lucide="upload-cloud" class="w-8 h-8 text-blue-500 mx-auto mb-2"></i>
+            <span class="text-slate-700 font-semibold block">Pilih fail CSV atau seret ke sini</span>
+            <span class="text-[11px] text-slate-400">Medan wajib: Nama, No_KP, Kategori, Tahun_Daftar, Status</span>
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button onclick="closeModal()" class="px-3 py-1.5 border rounded">Batal</button>
+            <button onclick="simulateImport()" class="px-4 py-1.5 bg-slate-900 text-white rounded font-bold">Mulakan Prapemetaan & Import</button>
+          </div>
+        </div>
+        `
+      );
+    }
+
+    function simulateImport() {
+      closeModal();
+      showToast('14 rekod ahli lama berjaya diimport dan disahkan.');
+      logAuditAction('MIGRASI_DATA_LAMA', 'Import kelompok 14 ahli lama melalui fungsi FR-005');
+    }
+
+    // =========================================================================
+    // MODUL 03: YURAN & PEMBAYARAN (FR-010 hingga FR-014)
+    // =========================================================================
+    function renderM03Yuran(container) {
+      container.innerHTML = `
+        <div class="space-y-6">
+          <!-- Summary Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div>
+                <p class="text-xs text-slate-500">Jumlah Invois Aktif</p>
+                <h4 class="text-xl font-bold text-slate-800">${DB.invoices.length} Invois</h4>
+              </div>
+              <div class="p-3 bg-blue-100 text-blue-700 rounded-lg"><i data-lucide="receipt" class="w-5 h-5"></i></div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div>
+                <p class="text-xs text-slate-500">Kutipan Berjaya</p>
+                <h4 class="text-xl font-bold text-emerald-600">RM 240.00</h4>
+              </div>
+              <div class="p-3 bg-emerald-100 text-emerald-700 rounded-lg"><i data-lucide="check-circle" class="w-5 h-5"></i></div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div>
+                <p class="text-xs text-slate-500">Menunggu Bayaran</p>
+                <h4 class="text-xl font-bold text-amber-600">RM 250.00</h4>
+              </div>
+              <div class="p-3 bg-amber-100 text-amber-700 rounded-lg"><i data-lucide="clock" class="w-5 h-5"></i></div>
+            </div>
+          </div>
+
+          <!-- Senarai Invois & Butang Pembayaran Langsung (FR-011, FR-012, FR-013) -->
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <div>
+                <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider">Senarai Invois & Transaksi Pembayaran</h4>
+                <p class="text-[11px] text-slate-500">Menyokong token idempotensi (FR-012) & webhook selamat.</p>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-100 text-slate-600 font-semibold uppercase text-[10px]">
+                  <tr>
+                    <th class="p-3">No. Invois</th>
+                    <th class="p-3">Keterangan Yuran</th>
+                    <th class="p-3">Jumlah (RM)</th>
+                    <th class="p-3">Tarikh Akhir</th>
+                    <th class="p-3">Status</th>
+                    <th class="p-3">No. Resit Sah</th>
+                    <th class="p-3 text-right">Tindakan</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 font-medium">
+                  ${DB.invoices.map(inv => `
+                    <tr class="hover:bg-slate-50">
+                      <td class="p-3 font-mono font-bold text-blue-700">${inv.no}</td>
+                      <td class="p-3 text-slate-800">${inv.desc}</td>
+                      <td class="p-3 font-bold">RM ${inv.amount.toFixed(2)}</td>
+                      <td class="p-3 text-slate-500">${inv.dueDate}</td>
+                      <td class="p-3">
+                        ${inv.status === 'paid' ? 
+                          '<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">Telah Dibayar</span>' : 
+                          '<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">Menunggu Bayaran</span>'}
+                      </td>
+                      <td class="p-3 font-mono text-[11px]">
+                        ${inv.receiptNo ? `<span class="text-emerald-700 font-semibold cursor-pointer underline" onclick="viewReceipt('${inv.no}')">${inv.receiptNo}</span>` : '<span class="text-slate-400">-</span>'}
+                      </td>
+                      <td class="p-3 text-right">
+                        ${inv.status !== 'paid' ? `
+                          <button onclick="triggerPaymentCheckout('${inv.no}', ${inv.amount})" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow flex items-center gap-1 ml-auto">
+                            <i data-lucide="credit-card" class="w-3.5 h-3.5"></i> Bayar Sekarang
+                          </button>
+                        ` : `
+                          <button onclick="viewReceipt('${inv.no}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1 rounded text-xs border border-slate-300">
+                            Papar Resit
+                          </button>
+                        `}
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function triggerPaymentCheckout(invoiceNo, amount) {
+      const inv = DB.invoices.find(i => i.no === invoiceNo);
+      openModal(
+        "Gerbang Pembayaran Selamat (FPX / Kad / DuitNow)",
+        `
+        <div class="space-y-4 text-xs">
+          <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div class="flex justify-between font-bold text-slate-800">
+              <span>${inv.desc}</span>
+              <span class="text-blue-700">RM ${amount.toFixed(2)}</span>
+            </div>
+            <div class="text-[10px] font-mono text-slate-500 mt-1">Idempotency-Key: ${inv.idempotencyKey}</div>
+          </div>
+          
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Pilih Saluran Pembayaran:</label>
+            <div class="grid grid-cols-3 gap-2">
+              <label class="border border-slate-300 p-2.5 rounded-lg flex flex-col items-center cursor-pointer hover:border-blue-500">
+                <input type="radio" name="pay-chan" checked class="mb-1">
+                <span class="font-bold text-slate-800">FPX Online</span>
+                <span class="text-[9px] text-slate-400">B2C Banking</span>
+              </label>
+              <label class="border border-slate-300 p-2.5 rounded-lg flex flex-col items-center cursor-pointer hover:border-blue-500">
+                <input type="radio" name="pay-chan" class="mb-1">
+                <span class="font-bold text-slate-800">Kad Kredit/Debit</span>
+                <span class="text-[9px] text-slate-400">Visa / Mastercard</span>
+              </label>
+              <label class="border border-slate-300 p-2.5 rounded-lg flex flex-col items-center cursor-pointer hover:border-blue-500">
+                <input type="radio" name="pay-chan" class="mb-1">
+                <span class="font-bold text-slate-800">DuitNow QR</span>
+                <span class="text-[9px] text-slate-400">Semua Bank</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="text-[10px] text-slate-500 bg-slate-50 p-2 rounded">
+            <strong>Kepatuhan NFR-12:</strong> Tiada nombor kad perbankan disimpan di pelayan SPP-PPM. Transaksi diproses sepenuhnya oleh Payment Gateway yang diiktiraf Bank Negara Malaysia.
+          </div>
+        </div>
+        `,
+        `
+        <button onclick="closeModal()" class="px-3 py-1.5 text-xs text-slate-600 border rounded">Batal</button>
+        <button onclick="simulateSuccessfulPayment('${invoiceNo}')" class="px-4 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow">
+          Sahkan & Bayar (RM ${amount.toFixed(2)})
+        </button>
+        `
+      );
+    }
+
+    function simulateSuccessfulPayment(invNo) {
+      const inv = DB.invoices.find(i => i.no === invNo);
+      if (!inv) return;
+
+      // Idempotency check simulation (UAT-02)
+      if (inv.status === 'paid') {
+        showToast('RALAT IDEMPOTENSI: Invois ini telahpun disahkan bayarannya.', 'error');
+        closeModal();
+        return;
+      }
+
+      const receiptNumber = `RES-PPM-${Math.floor(5000 + Math.random()*4999)}`;
+      inv.status = 'paid';
+      inv.receiptNo = receiptNumber;
+
+      // Catat dalam lejar akaun automatik (FR-018)
+      DB.journalEntries.push({
+        id: `JRN-${Math.floor(9000 + Math.random()*900)}`,
+        date: new Date().toISOString().slice(0, 10),
+        desc: `Penerimaan bayaran ${inv.desc} (${invNo})`,
+        debitAcc: "1001-Akaun Bank Utama (Maybank)",
+        debit: inv.amount,
+        creditAcc: "4001-Hasil Kutipan Yuran",
+        credit: inv.amount
+      });
+
+      logAuditAction('TERIMA_BAYARAN_WEBHOOK', `Bayaran ${invNo} berjaya disahkan. Resit dijana: ${receiptNumber}`, invNo);
+      closeModal();
+      showToast(`Pembayaran RM ${inv.amount.toFixed(2)} berjaya! Resit rasmi ${receiptNumber} dikeluarkan.`);
+      navigateTo('m03_yuran');
+    }
+
+    function viewReceipt(invNo) {
+      const inv = DB.invoices.find(i => i.no === invNo);
+      if (!inv) return;
+
+      openModal(
+        `Resit Rasmi Bayaran PPM (${inv.receiptNo})`,
+        `
+        <div class="border border-slate-300 p-5 rounded-lg bg-white space-y-4 text-xs font-sans">
+          <div class="flex justify-between items-start border-b pb-3">
+            <div>
+              <h4 class="font-bold text-slate-900 text-sm">PERSATUAN PUSTAKAWAN MALAYSIA</h4>
+              <p class="text-[10px] text-slate-500">Peti Surat 12545, 50782 Kuala Lumpur</p>
+              <p class="text-[10px] text-slate-500">No. Pendaftaran PPM: PPM-ROS-1955-KL</p>
+            </div>
+            <div class="text-right">
+              <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded">RESIT RASMI ELEKTRONIK</span>
+              <p class="font-mono font-bold text-slate-800 mt-1">${inv.receiptNo}</p>
+              <p class="text-[10px] text-slate-400">Tarikh: ${new Date().toISOString().slice(0, 10)}</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-[11px]">
+            <div>
+              <span class="text-slate-500 block">Diterima daripada:</span>
+              <span class="font-bold text-slate-800">${DB.currentUser.name}</span>
+              <span class="block text-slate-500">${DB.currentUser.institution}</span>
+            </div>
+            <div class="text-right">
+              <span class="text-slate-500 block">Rujukan Invois:</span>
+              <span class="font-mono font-bold text-slate-800">${inv.no}</span>
+              <span class="block text-[10px] text-slate-500">Kaedah: FPX / Webhook Disahkan</span>
+            </div>
+          </div>
+
+          <table class="w-full text-left border-t border-b border-slate-200 py-2">
+            <thead>
+              <tr class="text-slate-500 border-b">
+                <th class="py-1">Perkara / Butiran Yuran</th>
+                <th class="py-1 text-right">Jumlah (RM)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="py-2">${inv.desc}</td>
+                <td class="py-2 text-right font-bold">RM ${inv.amount.toFixed(2)}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="flex justify-between items-center text-xs font-bold pt-2">
+            <span>JUMLAH DITERIMA:</span>
+            <span class="text-emerald-700 text-sm">RM ${inv.amount.toFixed(2)}</span>
+          </div>
+
+          <p class="text-[9px] text-slate-400 italic text-center pt-2">Ini adalah cetakan komputer yang sah dan tidak memerlukan tandatangan fizikal.</p>
+        </div>
+        `,
+        `
+        <button onclick="window.print()" class="px-3 py-1.5 bg-blue-600 text-white rounded text-xs font-semibold flex items-center gap-1">
+          <i data-lucide="printer" class="w-3.5 h-3.5"></i> Cetak Salinan
+        </button>
+        <button onclick="closeModal()" class="px-3 py-1.5 border rounded text-xs">Tutup</button>
+        `
+      );
+    }
+
+    // =========================================================================
+    // MODUL 04: KEWANGAN & LEJAR BERGU (FR-015 hingga FR-019)
+    // =========================================================================
+    function renderM04Kewangan(container) {
+      const isFinanceRole = ['bendahari', 'superadmin'].includes(DB.currentUser.role);
+
+      // Hitung lejar (UAT-09: Lejar seimbang debit sama kredit)
+      const totalDebit = DB.journalEntries.reduce((sum, j) => sum + j.debit, 0);
+      const totalCredit = DB.journalEntries.reduce((sum, j) => sum + j.credit, 0);
+      const isBalanced = totalDebit === totalCredit;
+
+      container.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <div>
+              <h3 class="font-bold text-slate-800 text-base">Modul Kewangan & Tatatertib Perbelanjaan</h3>
+              <p class="text-xs text-slate-500">Prinsip: Pemisahan tugas pemohon & pelulus (FR-017), lejar bergu (FR-018) & tiada padam (FR-019).</p>
+            </div>
+            <button onclick="openNewVoucherModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center gap-1.5 shadow">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i> Cipta Baucar Bayaran
+            </button>
+          </div>
+
+          <!-- Status Baki & Lejar Bergu Card -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-xs font-bold text-slate-600 uppercase">Integriti Lejar Bergu (UAT-09)</span>
+                ${isBalanced ? 
+                  '<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded">LEJAR SEIMBANG (DEBIT = KREDIT)</span>' : 
+                  '<span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded">TIDAK SEIMBANG</span>'}
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-center pt-2">
+                <div class="bg-slate-50 p-2 rounded border">
+                  <div class="text-[10px] text-slate-500">Jumlah Debit</div>
+                  <div class="font-mono font-bold text-sm text-slate-800">RM ${totalDebit.toFixed(2)}</div>
+                </div>
+                <div class="bg-slate-50 p-2 rounded border">
+                  <div class="text-[10px] text-slate-500">Jumlah Kredit</div>
+                  <div class="font-mono font-bold text-sm text-slate-800">RM ${totalCredit.toFixed(2)}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+              <div>
+                <span class="text-xs font-bold text-slate-600 uppercase">Had Delegasi Kelulusan Kewangan PPM</span>
+                <p class="text-[11px] text-slate-500 mt-1">≤ RM 2,000 (Bendahari) | > RM 2,000 (Presiden + Bendahari / Majlis)</p>
+              </div>
+              <div class="text-[11px] text-blue-700 font-medium bg-blue-50 p-2 rounded border border-blue-100 mt-2">
+                Peranan Semasa: <strong>${DB.currentUser.role.toUpperCase()}</strong> ${isFinanceRole ? '(Mempunyai kuasa semak/lulus)' : '(Akses melihat sahaja)'}
+              </div>
+            </div>
+          </div>
+
+          <!-- Jadual Baucar Pembayaran (FR-016, FR-017) -->
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+              <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Senarai Baucar Tuntutan & Bayaran</span>
+              <span class="text-xs text-slate-500">${DB.vouchers.length} Rekod Baucar</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-100 text-slate-600 font-semibold uppercase text-[10px]">
+                  <tr>
+                    <th class="p-3">ID Baucar</th>
+                    <th class="p-3">Pemohon / Pembayar</th>
+                    <th class="p-3">Keterangan / Tujuan</th>
+                    <th class="p-3">Jumlah (RM)</th>
+                    <th class="p-3">Status Kelulusan</th>
+                    <th class="p-3 text-right">Tindakan Kelulusan</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 font-medium">
+                  ${DB.vouchers.map(v => `
+                    <tr class="hover:bg-slate-50">
+                      <td class="p-3 font-mono font-bold text-blue-700">${v.id}</td>
+                      <td class="p-3">${v.claimant}</td>
+                      <td class="p-3 text-slate-800">${v.purpose}</td>
+                      <td class="p-3 font-bold">RM ${v.amount.toFixed(2)}</td>
+                      <td class="p-3">
+                        ${v.status === 'approved' ? 
+                          `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded">Diluluskan (${v.approver})</span>` : 
+                          `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded">Menunggu Kelulusan</span>`}
+                      </td>
+                      <td class="p-3 text-right">
+                        ${isFinanceRole && v.status !== 'approved' ? `
+                          <button onclick="approveVoucher('${v.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1 rounded text-xs">
+                            Luluskan Baucar
+                          </button>
+                        ` : `
+                          <span class="text-[10px] text-slate-400 italic">${v.status === 'approved' ? 'Telah Dipos' : 'Tiada Kuasa'}</span>
+                        `}
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Paparan Catatan Lejar Bergu Terkini (FR-018) -->
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-3 border-b border-slate-200 bg-slate-50 font-bold text-xs text-slate-700 uppercase">
+              Catatan Jurnal Am (General Ledger)
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-100 text-slate-500 text-[10px] uppercase">
+                  <tr>
+                    <th class="p-2.5">ID / Tarikh</th>
+                    <th class="p-2.5">Keterangan Urus Niaga</th>
+                    <th class="p-2.5">Akaun Debit</th>
+                    <th class="p-2.5">Debit (RM)</th>
+                    <th class="p-2.5">Akaun Kredit</th>
+                    <th class="p-2.5">Kredit (RM)</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 font-mono text-[11px]">
+                  ${DB.journalEntries.map(j => `
+                    <tr class="hover:bg-slate-50">
+                      <td class="p-2.5 font-bold text-blue-700">${j.id}<br><span class="text-[9px] text-slate-400 font-sans">${j.date}</span></td>
+                      <td class="p-2.5 font-sans">${j.desc}</td>
+                      <td class="p-2.5 text-slate-800">${j.debitAcc}</td>
+                      <td class="p-2.5 font-bold text-slate-900">${j.debit.toFixed(2)}</td>
+                      <td class="p-2.5 text-slate-800">${j.creditAcc}</td>
+                      <td class="p-2.5 font-bold text-slate-900">${j.credit.toFixed(2)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      `;
+    }
+
+    function openNewVoucherModal() {
+      openModal(
+        "Cipta Baucar Pembayaran / Tuntutan Baru (FR-016)",
+        `
+        <form id="voucher-form" onsubmit="submitNewVoucher(event)" class="space-y-3 text-xs">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Nama Pemohon / Pegawai Bertanggungjawab</label>
+            <input type="text" id="vch-claimant" value="${DB.currentUser.name}" required class="w-full border border-slate-300 rounded p-2">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Tujuan Perbelanjaan / Aktiviti Program</label>
+            <input type="text" id="vch-purpose" placeholder="cth: Jamuan & Bahan Bengkel Literasi Maklumat" required class="w-full border border-slate-300 rounded p-2">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Jumlah Tuntutan (RM)</label>
+            <input type="number" step="0.01" id="vch-amount" placeholder="0.00" required class="w-full border border-slate-300 rounded p-2 font-mono">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Lampiran Resit / Sebut Harga (Wajib)</label>
+            <input type="file" class="w-full text-slate-500 border border-slate-300 rounded p-1.5 bg-slate-50">
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-3 py-1.5 border rounded">Batal</button>
+            <button type="submit" class="px-4 py-1.5 bg-blue-600 text-white font-bold rounded">Hantar Baucar</button>
+          </div>
+        </form>
+        `
+      );
+    }
+
+    function submitNewVoucher(e) {
+      e.preventDefault();
+      const claimant = document.getElementById('vch-claimant').value;
+      const purpose = document.getElementById('vch-purpose').value;
+      const amount = parseFloat(document.getElementById('vch-amount').value);
+
+      const newId = `VCH-2026-0${Math.floor(20 + Math.random()*79)}`;
+      DB.vouchers.push({
+        id: newId,
+        claimant: claimant,
+        purpose: purpose,
+        amount: amount,
+        status: "submitted",
+        approver: "Menunggu Kelulusan",
+        date: new Date().toISOString().slice(0, 10)
+      });
+
+      logAuditAction('CIPTA_BAUCAR_BAYARAN', `Baucar ${newId} (RM ${amount}) dihantar oleh ${claimant}`, newId);
+      closeModal();
+      showToast(`Baucar ${newId} berjaya dihantar untuk kelulusan bendahari.`);
+      navigateTo('m04_kewangan');
+    }
+
+    function approveVoucher(voucherId) {
+      const v = DB.vouchers.find(item => item.id === voucherId);
+      if (!v) return;
+
+      // Pemisahan tugas pemohon & pelulus (UAT-08)
+      if (v.claimant.includes(DB.currentUser.name)) {
+        showToast("RALAT UAT-08: Anda tidak boleh meluluskan baucar tuntutan anda sendiri!", "error");
+        return;
+      }
+
+      v.status = "approved";
+      v.approver = `${DB.currentUser.name} (Bendahari)`;
+
+      // Pos terus ke lejar bergu (FR-018)
+      DB.journalEntries.push({
+        id: `JRN-${Math.floor(9200 + Math.random()*700)}`,
+        date: new Date().toISOString().slice(0, 10),
+        desc: `Bayaran baucar ${v.id}: ${v.purpose}`,
+        debitAcc: "5010-Perbelanjaan Operasi & Acara",
+        debit: v.amount,
+        creditAcc: "1001-Akaun Bank Utama",
+        credit: v.amount
+      });
+
+      logAuditAction('LULUS_BAUCAR_KEWANGAN', `Baucar ${v.id} berjaya diluluskan sebanyak RM ${v.amount.toFixed(2)}`, v.id);
+      showToast(`Baucar ${v.id} diluluskan dan dipos ke Lejar Am.`);
+      navigateTo('m04_kewangan');
+    }
+
+    // =========================================================================
+    // MODUL 05: PROGRAM & ACARA (FR-020 hingga FR-024)
+    // =========================================================================
+    function renderM05Program(container) {
+      container.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <div>
+              <h3 class="font-bold text-slate-800 text-base">Program, Kursus & Kehadiran Ber-QR</h3>
+              <p class="text-xs text-slate-500">Penyelarasan acara, pendaftaran ahli, senarai menunggu & mata CPD automatik.</p>
+            </div>
+            <button onclick="openNewEventModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center gap-1.5 shadow">
+              <i data-lucide="calendar-plus" class="w-4 h-4"></i> Cipta Program Baru
+            </button>
+          </div>
+
+          <!-- Grid Senarai Program PPM (FR-020) -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            ${DB.events.map(ev => `
+              <div class="bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between overflow-hidden">
+                <div class="p-5 space-y-3">
+                  <div class="flex justify-between items-start">
+                    <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded">
+                      ${ev.cpd} Mata CPD
+                    </span>
+                    <span class="text-[10px] font-bold ${ev.status === 'full' ? 'text-rose-600 bg-rose-50' : 'text-emerald-700 bg-emerald-50'} px-2 py-0.5 rounded border">
+                      ${ev.status === 'full' ? 'Penuh (Waitlist)' : 'Pendaftaran Dibuka'}
+                    </span>
+                  </div>
+                  <h4 class="font-bold text-slate-900 text-sm leading-snug">${ev.title}</h4>
+                  <div class="space-y-1 text-xs text-slate-500">
+                    <div class="flex items-center gap-1.5"><i data-lucide="clock" class="w-3.5 h-3.5 text-slate-400"></i> ${ev.date}</div>
+                    <div class="flex items-center gap-1.5"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-400"></i> ${ev.venue}</div>
+                    <div class="flex items-center gap-1.5 font-semibold text-slate-700"><i data-lucide="tag" class="w-3.5 h-3.5 text-slate-400"></i> ${ev.fee > 0 ? `RM ${ev.fee.toFixed(2)}` : 'Percuma (Ahli Sahaja)'}</div>
+                  </div>
+                  <div>
+                    <div class="flex justify-between text-[11px] text-slate-600 mb-1">
+                      <span>Kapasiti Tempat Duduk</span>
+                      <span class="font-bold">${ev.seatsTaken} / ${ev.seatsTotal}</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2">
+                      <div class="bg-blue-600 h-2 rounded-full" style="width: ${(ev.seatsTaken/ev.seatsTotal)*100}%"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="p-3 bg-slate-50 border-t border-slate-200 flex gap-2">
+                  <button onclick="registerEvent('${ev.id}')" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 rounded-lg transition text-center shadow">
+                    ${ev.status === 'full' ? 'Daftar Senarai Menunggu' : 'Daftar Sekarang'}
+                  </button>
+                  <button onclick="openAttendanceScanner('${ev.id}', '${ev.title}')" class="p-2 border border-slate-300 rounded-lg hover:bg-white text-slate-700" title="Imbas QR Kehadiran (FR-022)">
+                    <i data-lucide="qr-code" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function openNewEventModal() {
+      openModal(
+        "Cipta Acara / Program Baru PPM (FR-020)",
+        `
+        <form onsubmit="submitNewEvent(event)" class="space-y-3 text-xs">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Tajuk Program / Bengkel</label>
+            <input type="text" id="ev-title" required class="w-full border border-slate-300 rounded p-2">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Tarikh Program</label>
+              <input type="text" id="ev-date" placeholder="cth: 12 Disember 2026" required class="w-full border border-slate-300 rounded p-2">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Kapasiti Peserta</label>
+              <input type="number" id="ev-capacity" value="50" required class="w-full border border-slate-300 rounded p-2">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Yuran Pendaftaran (RM)</label>
+              <input type="number" id="ev-fee" value="0" class="w-full border border-slate-300 rounded p-2">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Peruntukan Mata CPD</label>
+              <input type="number" id="ev-cpd" value="8" required class="w-full border border-slate-300 rounded p-2">
+            </div>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Lokasi / Pautan Acara</label>
+            <input type="text" id="ev-venue" required placeholder="cth: Dewan Seminar PPM / Atas Talian" class="w-full border border-slate-300 rounded p-2">
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-3 py-1.5 border rounded">Batal</button>
+            <button type="submit" class="px-4 py-1.5 bg-blue-600 text-white font-bold rounded">Terbitkan Acara</button>
+          </div>
+        </form>
+        `
+      );
+    }
+
+    function submitNewEvent(e) {
+      e.preventDefault();
+      const title = document.getElementById('ev-title').value;
+      const date = document.getElementById('ev-date').value;
+      const cap = parseInt(document.getElementById('ev-capacity').value);
+      const fee = parseFloat(document.getElementById('ev-fee').value);
+      const cpd = parseInt(document.getElementById('ev-cpd').value);
+      const venue = document.getElementById('ev-venue').value;
+
+      const newId = `EVT-0${DB.events.length + 1}`;
+      DB.events.push({
+        id: newId,
+        title: title,
+        date: date,
+        venue: venue,
+        fee: fee,
+        seatsTotal: cap,
+        seatsTaken: 1,
+        cpd: cpd,
+        status: "published"
+      });
+
+      logAuditAction('CIPTA_PROGRAM_BARU', `Acara diterbitkan: ${title} (${newId})`, newId);
+      closeModal();
+      showToast(`Program ${title} berjaya dicipta dan dibuka untuk pendaftaran.`);
+      navigateTo('m05_program');
+    }
+
+    function registerEvent(eventId) {
+      const ev = DB.events.find(e => e.id === eventId);
+      if (!ev) return;
+
+      if (ev.seatsTaken >= ev.seatsTotal) {
+        showToast(`Program penuh! Anda telah dimasukkan ke dalam Senarai Menunggu (Waitlist) - Kepatuhan UAT-05.`);
+        logAuditAction('DAFTAR_WAITLIST_PROGRAM', `Pendaftaran senarai menunggu untuk ${ev.title}`, eventId);
+      } else {
+        ev.seatsTaken += 1;
+        showToast(`Tahniah, pendaftaran anda untuk '${ev.title}' berjaya disahkan!`);
+        logAuditAction('DAFTAR_PROGRAM', `Pendaftaran disahkan bagi ${ev.title}`, eventId);
+      }
+      navigateTo('m05_program');
+    }
+
+    function openAttendanceScanner(eventId, eventTitle) {
+      openModal(
+        `Imbasan QR Kehadiran Acara (FR-022)`,
+        `
+        <div class="text-center space-y-4 text-xs">
+          <p class="text-slate-600 font-medium">${eventTitle}</p>
+          <div class="w-48 h-48 mx-auto bg-slate-900 rounded-xl flex flex-col items-center justify-center p-3 text-white border-4 border-blue-500 shadow-inner relative overflow-hidden">
+            <i data-lucide="scan" class="w-16 h-16 text-blue-400 animate-pulse"></i>
+            <span class="text-[10px] text-blue-300 mt-2 font-mono">PENGIMBAS AKTIF (CAMERA STREAM)</span>
+          </div>
+          <p class="text-[11px] text-slate-500">
+            Sistem mempunyai algoritma anti-duplikasi bagi menghalang imbasan berulang oleh ahli yang sama (UAT-06).
+          </p>
+          <button onclick="simulateScanAttendance('${eventId}')" class="px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold text-xs shadow flex items-center gap-1.5 mx-auto">
+            <i data-lucide="check" class="w-4 h-4"></i> Simulasi Imbas Kad Keahlian Ahli
+          </button>
+        </div>
+        `
+      );
+    }
+
+    function simulateScanAttendance(eventId) {
+      closeModal();
+      // Tambah mata CPD automatik jika layak (FR-026)
+      DB.currentUser.cpdPoints += 8;
+      logAuditAction('IMBAS_KEHADIRAN_QR', `Kehadiran disahkan untuk acara ${eventId}. 8 mata CPD dikreditkan ke transkrip ahli.`, eventId);
+      showToast('Kehadiran disahkan! 8 Mata CPD automatik telah ditambah ke profil anda (FR-026).');
+      navigateTo('m02_portal');
+    }
+
+    // =========================================================================
+    // MODUL 06: CPD & TRANSKRIP (FR-025 hingga FR-029)
+    // =========================================================================
+    function renderM06CPD(container) {
+      const isCpdOfficer = ['pegawai_cpd', 'superadmin'].includes(DB.currentUser.role);
+
+      container.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <div>
+              <h3 class="font-bold text-slate-800 text-base">Continuous Professional Development (CPD)</h3>
+              <p class="text-xs text-slate-500">Katalog mata, tuntutan CPD luaran, semakan pegawai & janaan transkrip (FR-029).</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="openNewCpdClaimModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center gap-1.5 shadow">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i> Tuntutan CPD Luar
+              </button>
+              <button onclick="generateCpdTranscript()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5">
+                <i data-lucide="file-text" class="w-4 h-4"></i> Transkrip CPD Rasmi
+              </button>
+            </div>
+          </div>
+
+          <!-- Kad Rekod Tuntutan CPD (FR-027, FR-028) -->
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+              <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Rekod Tuntutan & Pemberian Mata CPD</span>
+              <span class="text-xs bg-purple-100 text-purple-800 font-bold px-2.5 py-0.5 rounded-full">${DB.currentUser.cpdPoints} Jumlah Mata Terkumpul</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-100 text-slate-600 font-semibold uppercase text-[10px]">
+                  <tr>
+                    <th class="p-3">ID Tuntutan</th>
+                    <th class="p-3">Aktiviti / Tajuk Latihan</th>
+                    <th class="p-3">Kategori</th>
+                    <th class="p-3">Mata Dipohon</th>
+                    <th class="p-3">Status Semakan</th>
+                    <th class="p-3 text-right">Tindakan Pegawai</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 font-medium">
+                  ${DB.cpdClaims.map(claim => `
+                    <tr class="hover:bg-slate-50">
+                      <td class="p-3 font-mono font-bold text-blue-700">${claim.id}</td>
+                      <td class="p-3">
+                        <div class="font-semibold text-slate-800">${claim.title}</div>
+                        ${claim.note ? `<div class="text-[10px] text-amber-700 mt-0.5">Nota: ${claim.note}</div>` : ''}
+                      </td>
+                      <td class="p-3 text-slate-600">${claim.type}</td>
+                      <td class="p-3 font-bold text-purple-700">+${claim.points} Mata</td>
+                      <td class="p-3">
+                        ${getStatusBadge(claim.status)}
+                      </td>
+                      <td class="p-3 text-right">
+                        ${isCpdOfficer && claim.status !== 'approved' ? `
+                          <div class="flex justify-end gap-1">
+                            <button onclick="reviewCpdClaim('${claim.id}', 'approved')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded text-[11px] font-semibold">Luluskan</button>
+                            <button onclick="reviewCpdClaim('${claim.id}', 'query')" class="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded text-[11px] font-semibold">Kuiri</button>
+                          </div>
+                        ` : `
+                          <span class="text-[10px] text-slate-400 italic">${claim.status === 'approved' ? 'Mata Dipos' : 'Hak Pegawai CPD'}</span>
+                        `}
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function openNewCpdClaimModal() {
+      openModal(
+        "Tuntutan CPD Aktiviti Luaran (FR-027)",
+        `
+        <form onsubmit="submitNewCpdClaim(event)" class="space-y-3 text-xs">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Tajuk Aktiviti / Persidangan / Kursus</label>
+            <input type="text" id="cpd-title" required placeholder="cth: Kursus Pemeliharaan Manuskrip Melayu" class="w-full border border-slate-300 rounded p-2">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Jenis Aktiviti</label>
+              <select id="cpd-type" class="w-full border border-slate-300 rounded p-2">
+                <option value="Bengkel Luar">Bengkel / Kursus Luar</option>
+                <option value="Pembentangan">Pembentangan Kertas Kerja</option>
+                <option value="Penerbitan Ilmiah">Penerbitan Ilmiah / Buku</option>
+                <option value="Khidmat Komuniti">Khidmat Kepakaran Perpustakaan</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Mata Dituntut</label>
+              <input type="number" id="cpd-pts" value="10" required class="w-full border border-slate-300 rounded p-2">
+            </div>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Muat Naik Sijil Penyertaan / Surat Bukti</label>
+            <input type="file" required class="w-full text-slate-500 border border-slate-300 rounded p-1.5 bg-slate-50">
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-3 py-1.5 border rounded">Batal</button>
+            <button type="submit" class="px-4 py-1.5 bg-blue-600 text-white font-bold rounded">Hantar Tuntutan</button>
+          </div>
+        </form>
+        `
+      );
+    }
+
+    function submitNewCpdClaim(e) {
+      e.preventDefault();
+      const title = document.getElementById('cpd-title').value;
+      const type = document.getElementById('cpd-type').value;
+      const pts = parseInt(document.getElementById('cpd-pts').value);
+
+      const newId = `CPD-70${DB.cpdClaims.length + 1}`;
+      DB.cpdClaims.unshift({
+        id: newId,
+        title: title,
+        type: type,
+        points: pts,
+        status: "submitted",
+        approvedBy: "-",
+        date: new Date().toISOString().slice(0, 10)
+      });
+
+      logAuditAction('TUNTUTAN_CPD_BARU', `Tuntutan ${newId} (${pts} mata) dikemukakan`, newId);
+      closeModal();
+      showToast(`Tuntutan ${newId} berjaya diserahkan untuk semakan pegawai CPD.`);
+      navigateTo('m06_cpd');
+    }
+
+    function reviewCpdClaim(claimId, decision) {
+      const claim = DB.cpdClaims.find(c => c.id === claimId);
+      if (!claim) return;
+
+      if (decision === 'approved') {
+        claim.status = 'approved';
+        claim.approvedBy = `${DB.currentUser.name} (Pegawai CPD)`;
+        DB.currentUser.cpdPoints += claim.points;
+        logAuditAction('LULUS_TUNTUTAN_CPD', `Tuntutan ${claim.id} diluluskan (+${claim.points} mata)`, claim.id);
+        showToast(`Tuntutan ${claim.id} diluluskan. Mata dikreditkan ke transkrip.`);
+      } else if (decision === 'query') {
+        const note = prompt("Catatan kuiri bukti sijil:", "Sila lampirkan surat pengesyoran penganjur yang bertandatangan.");
+        if (!note) return;
+        claim.status = 'query';
+        claim.note = note;
+        logAuditAction('KUIRI_TUNTUTAN_CPD', `Kuiri bagi ${claim.id}: ${note}`, claim.id);
+        showToast(`Kuiri dihantar kepada pemohon tuntutan.`);
+      }
+      navigateTo('m06_cpd');
+    }
+
+    function generateCpdTranscript() {
+      openModal(
+        "Transkrip Rasmi CPD Persatuan Pustakawan Malaysia",
+        `
+        <div class="p-4 border rounded-xl bg-white space-y-3 text-xs">
+          <div class="text-center border-b pb-3">
+            <h4 class="font-bold text-slate-900 text-sm">PERSATUAN PUSTAKAWAN MALAYSIA</h4>
+            <p class="text-[10px] text-slate-500">Transkrip Pembangunan Profesional Berterusan (CPD)</p>
+            <p class="font-bold text-slate-800 mt-1">${DB.currentUser.name} (${DB.currentUser.memberId})</p>
+          </div>
+          <table class="w-full text-left">
+            <thead>
+              <tr class="text-slate-400 border-b text-[10px] uppercase">
+                <th class="py-1">Tarikh</th>
+                <th class="py-1">Aktiviti Diperakui</th>
+                <th class="py-1 text-right">Mata</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr>
+                <td class="py-1.5 text-slate-500">2026-09-14</td>
+                <td>IFLA Regional Workshop 2026</td>
+                <td class="text-right font-bold text-purple-700">20</td>
+              </tr>
+              <tr>
+                <td class="py-1.5 text-slate-500">2026-10-15</td>
+                <td>Seminar Kebangsaan Perpustakaan Digital</td>
+                <td class="text-right font-bold text-purple-700">15</td>
+              </tr>
+              <tr>
+                <td class="py-1.5 text-slate-500">2026-10-27</td>
+                <td>Bengkel Pengkatalogan Bahan Digital</td>
+                <td class="text-right font-bold text-purple-700">13</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="flex justify-between font-bold border-t pt-2 text-slate-800">
+            <span>JUMLAH MATA TERKUMPUL:</span>
+            <span class="text-purple-700 text-sm">${DB.currentUser.cpdPoints} MATA</span>
+          </div>
+          <div class="p-2 bg-emerald-50 text-emerald-800 text-[10px] rounded text-center">
+            Perakuan Kualiti: Memenuhi sasaran kelayakan Pembaharuan Perakuan Amalan Pustakawan PPM.
+          </div>
+        </div>
+        `,
+        `
+        <button onclick="window.print()" class="px-3 py-1.5 bg-blue-600 text-white rounded text-xs">Cetak PDF Transkrip</button>
+        <button onclick="closeModal()" class="px-3 py-1.5 border rounded text-xs">Tutup</button>
+        `
+      );
+    }
+
+    // =========================================================================
+    // MODUL 07: MESYUARAT & AJK (FR-030 hingga FR-033)
+    // =========================================================================
+    function renderM07Mesyuarat(container) {
+      container.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <div>
+              <h3 class="font-bold text-slate-800 text-base">Tadbir Urus Majlis PPM, Mesyuarat & Tindakan</h3>
+              <p class="text-xs text-slate-500">Pengurusan agenda, kehadiran, minit bertarikh dan pelan tindakan mesyuarat (FR-031, FR-032).</p>
+            </div>
+            <button onclick="openNewMeetingModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center gap-1.5 shadow">
+              <i data-lucide="calendar-check" class="w-4 h-4"></i> Jadualkan Mesyuarat Baru
+            </button>
+          </div>
+
+          <!-- Jadual Mesyuarat Majlis -->
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-200 bg-slate-50 font-bold text-xs text-slate-700 uppercase">
+              Jadual & Rekod Mesyuarat Majlis / Jawatankuasa
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-100 text-slate-600 font-semibold uppercase text-[10px]">
+                  <tr>
+                    <th class="p-3">ID / Mesyuarat</th>
+                    <th class="p-3">Tarikh & Masa</th>
+                    <th class="p-3">Tempat / Kaedah</th>
+                    <th class="p-3">Agenda Utama</th>
+                    <th class="p-3">Status Minit</th>
+                    <th class="p-3 text-right">Tindakan</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 font-medium">
+                  ${DB.meetings.map(m => `
+                    <tr class="hover:bg-slate-50">
+                      <td class="p-3 font-bold text-blue-700">${m.title}</td>
+                      <td class="p-3 text-slate-600">${m.date}</td>
+                      <td class="p-3 text-slate-600">${m.venue}</td>
+                      <td class="p-3 text-slate-700 max-w-xs truncate">${m.agenda}</td>
+                      <td class="p-3">
+                        <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-[10px] font-bold">${m.status}</span>
+                      </td>
+                      <td class="p-3 text-right">
+                        <button onclick="viewMeetingDetails('${m.id}')" class="text-blue-600 hover:underline font-semibold">Papar Agenda & Minit</button>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Matriks Tindakan & Resolusi (FR-032) -->
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-200 bg-slate-50 font-bold text-xs text-slate-700 uppercase">
+              Tindakan / Matriks Keputusan Mesyuarat (Action Items)
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-100 text-slate-600 font-semibold uppercase text-[10px]">
+                  <tr>
+                    <th class="p-3">No. Tindakan</th>
+                    <th class="p-3">Tugasan / Ketetapan</th>
+                    <th class="p-3">Pegawai Bertanggungjawab</th>
+                    <th class="p-3">Tarikh Akhir</th>
+                    <th class="p-3">Status Tindakan</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 font-medium">
+                  ${DB.actionItems.map(a => `
+                    <tr class="hover:bg-slate-50">
+                      <td class="p-3 font-mono font-bold text-slate-700">${a.id}</td>
+                      <td class="p-3 text-slate-800">${a.task}</td>
+                      <td class="p-3 text-blue-700 font-semibold">${a.owner}</td>
+                      <td class="p-3 text-slate-500">${a.deadline}</td>
+                      <td class="p-3">
+                        <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded">${a.status}</span>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function viewMeetingDetails(meetingId) {
+      const m = DB.meetings.find(item => item.id === meetingId);
+      if (!m) return;
+      openModal(
+        `Butiran Mesyuarat: ${m.title}`,
+        `
+        <div class="space-y-3 text-xs">
+          <div class="p-3 bg-slate-50 rounded-lg border">
+            <div><strong class="text-slate-700">Waktu & Tempat:</strong> ${m.date} | ${m.venue}</div>
+            <div class="mt-1"><strong class="text-slate-700">Status Minit:</strong> ${m.status} (FR-033)</div>
+          </div>
+          <div>
+            <h5 class="font-bold text-slate-800 mb-1">Agenda Yang Telah Ditetapkan:</h5>
+            <p class="text-slate-600 p-2 border rounded bg-white">${m.agenda}</p>
+          </div>
+          <div>
+            <h5 class="font-bold text-slate-800 mb-1">Dokumen & Minit Bersurat:</h5>
+            <div class="flex items-center gap-2 text-blue-600 font-semibold cursor-pointer p-2 border rounded bg-blue-50/50" onclick="showToast('Memuat turun fail draf minit berenkripsi', 'info')">
+              <i data-lucide="file-text" class="w-4 h-4"></i> Minit_Mesyuarat_Majlis_PPM_Signed.pdf
+            </div>
+          </div>
+        </div>
+        `
+      );
+    }
+
+    function openNewMeetingModal() {
+      openModal(
+        "Jadualkan Mesyuarat Baru (FR-031)",
+        `
+        <form onsubmit="submitNewMeeting(event)" class="space-y-3 text-xs">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Nama Mesyuarat</label>
+            <input type="text" id="mtg-title" required placeholder="cth: Mesyuarat Majlis PPM Bil. 5/2026" class="w-full border border-slate-300 rounded p-2">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Tarikh & Masa</label>
+              <input type="text" id="mtg-date" required placeholder="cth: 20 Dis 2026 (10:00 AM)" class="w-full border border-slate-300 rounded p-2">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Tempat / Kaedah</label>
+              <input type="text" id="mtg-venue" required placeholder="Bilik Gerakan / Zoom" class="w-full border border-slate-300 rounded p-2">
+            </div>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Agenda Mesyuarat</label>
+            <textarea id="mtg-agenda" rows="3" required placeholder="Senaraikan agenda utama..." class="w-full border border-slate-300 rounded p-2"></textarea>
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-3 py-1.5 border rounded">Batal</button>
+            <button type="submit" class="px-4 py-1.5 bg-blue-600 text-white font-bold rounded">Simpan & Hantar Jemputan</button>
+          </div>
+        </form>
+        `
+      );
+    }
+
+    function submitNewMeeting(e) {
+      e.preventDefault();
+      const title = document.getElementById('mtg-title').value;
+      const date = document.getElementById('mtg-date').value;
+      const venue = document.getElementById('mtg-venue').value;
+      const agenda = document.getElementById('mtg-agenda').value;
+
+      const newId = `MTG-0${DB.meetings.length + 1}`;
+      DB.meetings.unshift({
+        id: newId,
+        title: title,
+        date: date,
+        venue: venue,
+        status: "Dijadualkan",
+        agenda: agenda
+      });
+
+      logAuditAction('JADUAL_MESYUARAT_BARU', `Mesyuarat ${title} dijadualkan pada ${date}`, newId);
+      closeModal();
+      showToast(`Mesyuarat ${title} berjaya dijadualkan.`);
+      navigateTo('m07_mesyuarat');
+    }
+
+    // =========================================================================
+    // MODUL 08: PILIHAN RAYA & UNDIAN RAHSIA (FR-034 hingga FR-038)
+    // =========================================================================
+    function renderM08Pilihanraya(container) {
+      const elc = DB.election;
+      const isElectionCommittee = ['suruhanjaya_undi', 'superadmin'].includes(DB.currentUser.role);
+
+      container.innerHTML = `
+        <div class="space-y-6">
+          <!-- Banner Pilihanraya & Integriti Undi Rahsia -->
+          <div class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white p-6 rounded-2xl shadow-lg border border-slate-800">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <span class="bg-amber-500 text-slate-950 font-black text-[10px] px-2.5 py-0.5 rounded tracking-wider uppercase">
+                  PILIHAN RAYA RASMI MAJLIS PPM
+                </span>
+                <h3 class="text-xl font-bold mt-1 text-white">${elc.title}</h3>
+                <p class="text-xs text-slate-300 mt-1">Daftar Pengundi Terkunci: <strong>${elc.cutOffDate}</strong> | Status: <span class="text-emerald-400 font-bold">${elc.status}</span></p>
+              </div>
+              <div class="p-3 bg-white/5 border border-white/10 rounded-xl text-[11px] text-slate-300 max-w-xs">
+                <strong>Prinsip Undi Rahsia (FR-037 & UAT-11):</strong> Identiti pengundi dan pilihan undi dipisahkan melalui Token Kriptografi Sekali Guna tanpa jejak balik ke identiti asal.
+              </div>
+            </div>
+          </div>
+
+          <!-- Kertas Undi Digital (FR-037) -->
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+              <div>
+                <h4 class="font-bold text-slate-800 text-sm">Kertas Undi Elektronik Rasmi</h4>
+                <p class="text-xs text-slate-500">Sila pilih satu calon bagi setiap jawatan Majlis PPM yang dipertandingkan.</p>
+              </div>
+              ${elc.alreadyVoted ? `
+                <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
+                  <i data-lucide="check-check" class="w-4 h-4"></i> Anda Telah Mengundi (Token Dilupus)
+                </span>
+              ` : `
+                <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">
+                  Kelayakan: Sah Mengundi
+                </span>
+              `}
+            </div>
+
+            <div class="space-y-4">
+              <h5 class="font-bold text-xs text-blue-900 uppercase tracking-wider">Jawatan: Presiden Persatuan Pustakawan Malaysia</h5>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                ${elc.candidates.filter(c => c.position === 'Presiden').map(c => `
+                  <label class="border-2 rounded-xl p-4 flex items-center gap-3 cursor-pointer transition hover:border-blue-600 ${elc.alreadyVoted ? 'opacity-60 pointer-events-none' : 'border-slate-200'}">
+                    <input type="radio" name="vote-presiden" value="${c.id}" ${elc.alreadyVoted ? 'disabled' : ''} class="w-4 h-4 text-blue-600">
+                    <div>
+                      <div class="font-bold text-slate-800 text-xs sm:text-sm">${c.name}</div>
+                      <div class="text-[11px] text-slate-500">${c.org}</div>
+                    </div>
+                  </label>
+                `).join('')}
+              </div>
+
+              <h5 class="font-bold text-xs text-blue-900 uppercase tracking-wider pt-2">Jawatan: Naib Presiden</h5>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                ${elc.candidates.filter(c => c.position === 'Naib Presiden').map(c => `
+                  <label class="border-2 rounded-xl p-4 flex items-center gap-3 cursor-pointer transition hover:border-blue-600 ${elc.alreadyVoted ? 'opacity-60 pointer-events-none' : 'border-slate-200'}">
+                    <input type="radio" name="vote-naib" value="${c.id}" ${elc.alreadyVoted ? 'disabled' : ''} class="w-4 h-4 text-blue-600">
+                    <div>
+                      <div class="font-bold text-slate-800 text-xs sm:text-sm">${c.name}</div>
+                      <div class="text-[11px] text-slate-500">${c.org}</div>
+                    </div>
+                  </label>
+                `).join('')}
+              </div>
+            </div>
+
+            ${!elc.alreadyVoted ? `
+              <div class="flex justify-end pt-4 border-t border-slate-100">
+                <button onclick="castBallot()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-6 py-2.5 rounded-lg text-xs shadow flex items-center gap-2">
+                  <i data-lucide="send" class="w-4 h-4"></i> Masukkan Undi Sulit Ke Peti Digital
+                </button>
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Papan Keputusan Pengiraan Terkawal (FR-038) -->
+          ${isElectionCommittee ? `
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
+              <div class="flex justify-between items-center border-b pb-3">
+                <span class="font-bold text-xs uppercase text-slate-700">Keputusan Rasmi & Audit Undian (Akses Jawatankuasa Pemilihan)</span>
+                <span class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-mono">FR-038 Audit Bebas</span>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                ${elc.candidates.map(c => `
+                  <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 flex justify-between items-center">
+                    <div>
+                      <div class="text-[10px] text-blue-700 font-bold uppercase">${c.position}</div>
+                      <div class="font-bold text-xs text-slate-800">${c.name}</div>
+                      <div class="text-[10px] text-slate-400">${c.org}</div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-lg font-black text-slate-900">${c.votesCount}</div>
+                      <div class="text-[9px] text-slate-500 uppercase">Undi Diterima</div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+        </div>
+      `;
+    }
+
+    function castBallot() {
+      const presChecked = document.querySelector('input[name="vote-presiden"]:checked');
+      const naibChecked = document.querySelector('input[name="vote-naib"]:checked');
+
+      if (!presChecked || !naibChecked) {
+        showToast("Sila lengkapkan pilihan undian bagi kedua-dua jawatan yang dipertandingkan.", "error");
+        return;
+      }
+
+      openModal(
+        "Pengesahan Undi Sulit (FR-037)",
+        `
+        <div class="space-y-3 text-xs">
+          <p class="text-slate-700">Adakah anda pasti dengan pilihan undian anda? Tindakan ini adalah muktamad.</p>
+          <div class="p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg text-[11px]">
+            <strong>Kerahsiaan Mutlak (UAT-11):</strong> Sebaik sahaja dihantar, token pengundi anda akan dipadam secara kriptografi, dan kertas undi disimpan secara tanpa nama (anonymous ballot).
+          </div>
+        </div>
+        `,
+        `
+        <button onclick="closeModal()" class="px-3 py-1.5 border rounded text-xs">Batal</button>
+        <button onclick="confirmCastBallot('${presChecked.value}', '${naibChecked.value}')" class="px-4 py-1.5 bg-blue-600 text-white font-bold rounded text-xs shadow">Sahkan & Masukkan Undi</button>
+        `
+      );
+    }
+
+    function confirmCastBallot(presId, naibId) {
+      const cPres = DB.election.candidates.find(c => c.id === presId);
+      const cNaib = DB.election.candidates.find(c => c.id === naibId);
+      if (cPres) cPres.votesCount += 1;
+      if (cNaib) cNaib.votesCount += 1;
+
+      DB.election.alreadyVoted = true;
+      logAuditAction('UNDI_SULIT_DIMASUKKAN', 'Undi tanpa nama dimasukkan ke peti undi digital. Token pengundi dilupuskan serta-merta.');
+      closeModal();
+      showToast('Undi anda telah berjaya direkodkan secara rahsia. Terima kasih kerana menunaikan tanggungjawab!');
+      navigateTo('m08_pilihanraya');
+    }
+
+    // =========================================================================
+    // MODUL 09: KOMUNIKASI & E-MEL (FR-039 hingga FR-042)
+    // =========================================================================
+    function renderM09Komunikasi(container) {
+      container.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <div>
+              <h3 class="font-bold text-slate-800 text-base">Pusat Komunikasi & Pengumuman Pukal</h3>
+              <p class="text-xs text-slate-500">Templat e-mel, siaran warta rasmi, log persetujuan & saluran transmisi (FR-039, FR-040).</p>
+            </div>
+            <button onclick="openNewAnnouncementModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center gap-1.5 shadow">
+              <i data-lucide="send" class="w-4 h-4"></i> Siarkan Pengumuman
+            </button>
+          </div>
+
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-200 bg-slate-50 font-bold text-xs text-slate-700 uppercase">
+              Warta & Pengumuman Rasmi PPM Terkini
+            </div>
+            <div class="divide-y divide-slate-200">
+              ${DB.announcements.map(ann => `
+                <div class="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 hover:bg-slate-50">
+                  <div class="space-y-1">
+                    <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded">${ann.audience}</span>
+                    <h4 class="font-bold text-slate-800 text-sm">${ann.title}</h4>
+                    <p class="text-xs text-slate-400">Diterbitkan pada: ${ann.date} • Disampaikan via E-mel & Portal</p>
+                  </div>
+                  <button onclick="showToast('Menghantar semula e-mel pengumuman melalui sistem queue')" class="px-3 py-1.5 border border-slate-300 text-slate-600 text-xs font-semibold rounded hover:bg-white flex items-center gap-1">
+                    <i data-lucide="repeat" class="w-3.5 h-3.5"></i> Hantar Semula (Retry)
+                  </button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function openNewAnnouncementModal() {
+      openModal(
+        "Cipta Pengumuman & Siaran E-mel (FR-039)",
+        `
+        <form onsubmit="submitNewAnnouncement(event)" class="space-y-3 text-xs">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Tajuk Pengumuman</label>
+            <input type="text" id="ann-title" required placeholder="cth: Jemputan Menghadiri Bengkel Hak Cipta PPM" class="w-full border border-slate-300 rounded p-2">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Kumpulan Sasaran (Segmentasi Ahli)</label>
+            <select id="ann-aud" class="w-full border border-slate-300 rounded p-2">
+              <option value="Semua Ahli">Semua Ahli Berdaftar</option>
+              <option value="Ahli Profesional">Ahli Profesional Sahaja</option>
+              <option value="Ahli Institusi">Ahli Institusi & Korporat</option>
+              <option value="AJK Majlis">Ahli Jawatankuasa Majlis</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Kandungan Mesej</label>
+            <textarea id="ann-msg" rows="4" required placeholder="Kandungan warta rasmi..." class="w-full border border-slate-300 rounded p-2"></textarea>
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-3 py-1.5 border rounded">Batal</button>
+            <button type="submit" class="px-4 py-1.5 bg-blue-600 text-white font-bold rounded">Terbitkan & Hantar</button>
+          </div>
+        </form>
+        `
+      );
+    }
+
+    function submitNewAnnouncement(e) {
+      e.preventDefault();
+      const title = document.getElementById('ann-title').value;
+      const aud = document.getElementById('ann-aud').value;
+
+      DB.announcements.unshift({
+        id: `ANN-0${DB.announcements.length + 1}`,
+        title: title,
+        date: new Date().toISOString().slice(0, 10),
+        audience: aud,
+        status: "Diterbitkan"
+      });
+
+      logAuditAction('SIARAN_PENGUMUMAN_PUKAL', `Pengumuman '${title}' dihantar kepada segmen: ${aud}`);
+      closeModal();
+      showToast('Pengumuman berjaya dimasukkan ke baris gilir penghantaran e-mel (Queue).');
+      navigateTo('m09_komunikasi');
+    }
+
+    // =========================================================================
+    // MODUL 10: DOKUMEN & ARKIB (FR-043 hingga FR-046)
+    // =========================================================================
+    function renderM10Dokumen(container) {
+      container.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <div>
+              <h3 class="font-bold text-slate-800 text-base">Repositori Dokumen Rasmi & Kawalan Versi</h3>
+              <p class="text-xs text-slate-500">Metadata, klasifikasi keselamatan, kawalan akses & dasar retensi rekod (FR-043, FR-044).</p>
+            </div>
+            <button onclick="openUploadDocModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center gap-1.5 shadow">
+              <i data-lucide="upload" class="w-4 h-4"></i> Muat Naik Dokumen
+            </button>
+          </div>
+
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-200 bg-slate-50 font-bold text-xs text-slate-700 uppercase">
+              Senarai Dokumen Rasmi Terkawal
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-100 text-slate-600 font-semibold uppercase text-[10px]">
+                  <tr>
+                    <th class="p-3">Tajuk Dokumen</th>
+                    <th class="p-3">Kategori</th>
+                    <th class="p-3">Versi</th>
+                    <th class="p-3">Klasifikasi</th>
+                    <th class="p-3">Akses Dibenarkan</th>
+                    <th class="p-3 text-right">Tindakan</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 font-medium">
+                  ${DB.documents.map(doc => `
+                    <tr class="hover:bg-slate-50">
+                      <td class="p-3">
+                        <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                          <i data-lucide="file" class="w-4 h-4 text-blue-600"></i> ${doc.title}
+                        </div>
+                      </td>
+                      <td class="p-3 text-slate-600">${doc.cat}</td>
+                      <td class="p-3 font-mono text-[11px] font-bold text-blue-700">${doc.version}</td>
+                      <td class="p-3">
+                        <span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[10px] font-bold border">${doc.classification}</span>
+                      </td>
+                      <td class="p-3 text-slate-600">${doc.access}</td>
+                      <td class="p-3 text-right">
+                        <button onclick="downloadDocument('${doc.id}', '${doc.classification}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded text-xs border border-slate-300">
+                          Muat Turun
+                        </button>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function openUploadDocModal() {
+      openModal(
+        "Muat Naik Dokumen Rasmi PPM (FR-043)",
+        `
+        <form onsubmit="submitNewDocument(event)" class="space-y-3 text-xs">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Tajuk Dokumen</label>
+            <input type="text" id="doc-title" required class="w-full border border-slate-300 rounded p-2">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Kategori</label>
+              <input type="text" id="doc-cat" placeholder="cth: Polisi / Arahan Pentadbiran" required class="w-full border border-slate-300 rounded p-2">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Versi Dokumen</label>
+              <input type="text" id="doc-ver" placeholder="v1.0" required class="w-full border border-slate-300 rounded p-2">
+            </div>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Klasifikasi Keselamatan</label>
+            <select id="doc-class" class="w-full border border-slate-300 rounded p-2">
+              <option value="Awam">Awam (Boleh diakses semua)</option>
+              <option value="Sulit Terhad">Sulit Terhad (Ahli Berdaftar)</option>
+              <option value="Rahsia Rasmi">Rahsia Rasmi (Majlis PPM Sahaja)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Pilih Fail Dokumen</label>
+            <input type="file" required class="w-full text-slate-500 border border-slate-300 rounded p-1.5 bg-slate-50">
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-3 py-1.5 border rounded">Batal</button>
+            <button type="submit" class="px-4 py-1.5 bg-blue-600 text-white font-bold rounded">Muat Naik & Arkib</button>
+          </div>
+        </form>
+        `
+      );
+    }
+
+    function submitNewDocument(e) {
+      e.preventDefault();
+      const title = document.getElementById('doc-title').value;
+      const cat = document.getElementById('doc-cat').value;
+      const ver = document.getElementById('doc-ver').value;
+      const cls = document.getElementById('doc-class').value;
+
+      DB.documents.push({
+        id: `DOC-0${DB.documents.length + 1}`,
+        title: title,
+        cat: cat,
+        version: ver,
+        classification: cls,
+        access: cls === 'Awam' ? 'Semua Ahli' : 'AJK Majlis PPM'
+      });
+
+      logAuditAction('MUAT_NAIK_DOKUMEN', `Dokumen '${title}' (${ver}) diklasifikasi sebagai ${cls}`);
+      closeModal();
+      showToast(`Dokumen '${title}' berjaya dimuat naik ke repositori.`);
+      navigateTo('m10_dokumen');
+    }
+
+    function downloadDocument(docId, classification) {
+      // Kawalan Akses Dokumen Terhad (UAT-10)
+      if (classification === 'Rahsia Rasmi' && !['superadmin', 'bendahari'].includes(DB.currentUser.role)) {
+        showToast("RALAT UAT-10: Anda tidak mempunyai kebenaran keselamatan untuk memuat turun dokumen Rahsia Rasmi ini!", "error");
+        logAuditAction('CUBAAN_AKSES_DOKUMEN_GAGAL', `Pengguna ${DB.currentUser.name} cuba mengakses dokumen terkawal ${docId}`);
+        return;
+      }
+      showToast(`Memuat turun fail ${docId}...`);
+      logAuditAction('MUAT_TURUN_DOKUMEN', `Muat turun fail dokumen rasmi ${docId}`);
+    }
+
+    // =========================================================================
+    // MODUL 11: DASHBOARD & PELAPORAN EKSEKUTIF (FR-047 hingga FR-050)
+    // =========================================================================
+    function renderM11Dashboard(container) {
+      container.innerHTML = `
+        <div class="space-y-6">
+          <!-- Metrik Eksekutif Persatuan -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <div class="flex justify-between items-center text-slate-500 text-xs">
+                <span>Jumlah Keahlian Aktif</span>
+                <i data-lucide="users" class="w-4 h-4 text-blue-600"></i>
+              </div>
+              <div class="text-2xl font-black text-slate-800 mt-2">1,482</div>
+              <div class="text-[11px] text-emerald-600 font-semibold mt-1">▲ 8.4% berbanding 2025</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <div class="flex justify-between items-center text-slate-500 text-xs">
+                <span>Kutipan Yuran Tahun Semasa</span>
+                <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-600"></i>
+              </div>
+              <div class="text-2xl font-black text-slate-800 mt-2">RM 177,840</div>
+              <div class="text-[11px] text-slate-500 mt-1">Sasaran: RM 190,000</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <div class="flex justify-between items-center text-slate-500 text-xs">
+                <span>Kadar Penyertaan CPD</span>
+                <i data-lucide="award" class="w-4 h-4 text-purple-600"></i>
+              </div>
+              <div class="text-2xl font-black text-slate-800 mt-2">78.2%</div>
+              <div class="text-[11px] text-purple-600 font-semibold mt-1">820 Ahli capai sasaran min</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <div class="flex justify-between items-center text-slate-500 text-xs">
+                <span>Permohonan Menunggu</span>
+                <i data-lucide="clock" class="w-4 h-4 text-amber-600"></i>
+              </div>
+              <div class="text-2xl font-black text-slate-800 mt-2">${DB.applications.filter(a => a.status === 'submitted' || a.status === 'under_review').length}</div>
+              <div class="text-[11px] text-amber-700 font-semibold mt-1">Sedia disemak urus setia</div>
+            </div>
+          </div>
+
+          <!-- Carta Ringkas Taburan & Pembina Laporan (FR-048, FR-049) -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm lg:col-span-2">
+              <div class="flex justify-between items-center mb-4">
+                <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider">Taburan Kategori Keahlian PPM 2026</h4>
+                <button onclick="exportReportData('CSV')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1 rounded border flex items-center gap-1">
+                  <i data-lucide="download" class="w-3.5 h-3.5"></i> Eksport CSV (FR-049)
+                </button>
+              </div>
+              
+              <!-- Simulasi Carta Bar Segar -->
+              <div class="space-y-3 text-xs pt-2">
+                <div>
+                  <div class="flex justify-between font-semibold text-slate-700 mb-1">
+                    <span>Ahli Profesional (Pustakawan Berkelayakan)</span>
+                    <span>892 Ahli (60%)</span>
+                  </div>
+                  <div class="w-full bg-slate-100 rounded-full h-3">
+                    <div class="bg-blue-600 h-3 rounded-full" style="width: 60%"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between font-semibold text-slate-700 mb-1">
+                    <span>Ahli Biasa / Bersekutu</span>
+                    <span>320 Ahli (22%)</span>
+                  </div>
+                  <div class="w-full bg-slate-100 rounded-full h-3">
+                    <div class="bg-indigo-500 h-3 rounded-full" style="width: 22%"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between font-semibold text-slate-700 mb-1">
+                    <span>Ahli Pelajar (Sains Maklumat / Pengurusan Perpustakaan)</span>
+                    <span>190 Ahli (13%)</span>
+                  </div>
+                  <div class="w-full bg-slate-100 rounded-full h-3">
+                    <div class="bg-amber-500 h-3 rounded-full" style="width: 13%"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between font-semibold text-slate-700 mb-1">
+                    <span>Ahli Institusi (Perpustakaan Akademik & Awam)</span>
+                    <span>80 Ahli (5%)</span>
+                  </div>
+                  <div class="w-full bg-slate-100 rounded-full h-3">
+                    <div class="bg-emerald-500 h-3 rounded-full" style="width: 5%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+              <div>
+                <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider mb-2">Penjana Laporan Terkawal (FR-050)</h4>
+                <p class="text-xs text-slate-500 mb-4">Pilih parameter untuk menjana penyata rasmi mematuhi UAT-12.</p>
+                <div class="space-y-3 text-xs">
+                  <div>
+                    <label class="block text-slate-600 font-semibold mb-1">Jenis Laporan</label>
+                    <select class="w-full border rounded p-2 text-xs">
+                      <option>Laporan Penyata Kewangan Tahunan</option>
+                      <option>Laporan Status Kutipan Yuran</option>
+                      <option>Laporan Kehadiran Program & CPD</option>
+                      <option>Laporan Audit Log & Keselamatan</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-slate-600 font-semibold mb-1">Tahun Kewangan</label>
+                    <select class="w-full border rounded p-2 text-xs">
+                      <option>Tahun 2026</option>
+                      <option>Tahun 2025</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <button onclick="exportReportData('PDF')" class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-xs shadow flex items-center justify-center gap-1.5">
+                <i data-lucide="printer" class="w-4 h-4"></i> Jana Penyata Rasmi (PDF)
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function exportReportData(format) {
+      logAuditAction('EKSPORT_LAPORAN_TERKAWAL', `Laporan dieksport dalam format ${format} mengikut kebenaran RBAC (UAT-12)`);
+      showToast(`Laporan berjaya dieksport dalam format ${format}.`);
+    }
+
+    // =========================================================================
+    // MODUL 12: TETAPAN & AUDIT LOG IMUTABLE (FR-051 hingga FR-055)
+    // =========================================================================
+    function renderM12Tetapan(container) {
+      container.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <div>
+              <h3 class="font-bold text-slate-800 text-base">Keselamatan, Kawalan RBAC & Jejak Audit (FR-053)</h3>
+              <p class="text-xs text-slate-500">Log sistem tidak boleh dipadam (immutable audit trail) dan pemantauan NFR-05.</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="triggerBackupDrill()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5">
+                <i data-lucide="database-backup" class="w-4 h-4"></i> Ujian Backup & Pulih (FR-055)
+              </button>
+            </div>
+          </div>
+
+          <!-- Matriks Tetapan Sistem PPM & MFA -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <h5 class="font-bold text-xs text-slate-800 mb-1">MFA Akaun Berkeistimewaan (FR-052)</h5>
+              <p class="text-[11px] text-slate-500 mb-3">Wajib bagi Superadmin, Bendahari & Urus Setia.</p>
+              <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded">STATUS: AKTIF (TOTP)</span>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <h5 class="font-bold text-xs text-slate-800 mb-1">Dasar Sasaran RPO / RTO (NFR-07)</h5>
+              <p class="text-[11px] text-slate-500 mb-3">RPO: 24 Jam | RTO: 8 Jam (Snapshot Berjadual).</p>
+              <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded">PATUH SLA PPM</span>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <h5 class="font-bold text-xs text-slate-800 mb-1">Kepatuhan Privasi PDPA 2010 (NFR-10)</h5>
+              <p class="text-[11px] text-slate-500 mb-3">Penyulitan data at-rest & in-transit AES-256.</p>
+              <span class="bg-purple-100 text-purple-800 text-[10px] font-bold px-2 py-0.5 rounded">TERIKTIRAF</span>
+            </div>
+          </div>
+
+          <!-- Senarai Audit Trail Statutori Tidak Boleh Padam (FR-053) -->
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+              <div>
+                <span class="font-bold text-xs text-slate-700 uppercase tracking-wider">Log Audit Keselamatan Aplikasi (Statutory Immutable Trail)</span>
+                <p class="text-[10px] text-slate-400">Setiap rekod merekodkan aktor, tindakan, masa dan objek secara kekal.</p>
+              </div>
+              <span class="text-xs bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-mono font-bold">${DB.auditLogs.length} Entri</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-100 text-slate-600 font-semibold uppercase text-[10px]">
+                  <tr>
+                    <th class="p-3">ID Log</th>
+                    <th class="p-3">Waktu (Timestamp)</th>
+                    <th class="p-3">Aktor & Peranan</th>
+                    <th class="p-3">Tindakan Dilakukan</th>
+                    <th class="p-3">Objek Sasaran</th>
+                    <th class="p-3">Perincian / Butiran Nilai</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 font-mono text-[11px]">
+                  ${DB.auditLogs.map(aud => `
+                    <tr class="hover:bg-slate-50">
+                      <td class="p-3 text-slate-400 font-bold">${aud.id}</td>
+                      <td class="p-3 text-slate-500 font-sans">${aud.timestamp}</td>
+                      <td class="p-3 font-semibold text-blue-700 font-sans">${aud.actor}</td>
+                      <td class="p-3">
+                        <span class="bg-slate-100 text-slate-800 px-2 py-0.5 rounded text-[10px] font-bold">${aud.action}</span>
+                      </td>
+                      <td class="p-3 text-slate-800 font-sans">${aud.target}</td>
+                      <td class="p-3 text-slate-600 font-sans text-xs">${aud.details}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function triggerBackupDrill() {
+      openModal(
+        "Latihan Pemulihan Bencana & Backup Harian (FR-055 / NFR-06)",
+        `
+        <div class="space-y-3 text-xs">
+          <p class="text-slate-600">Simulasi semakan integriti arkib sandaran PostgreSQL & fail storan terenkripsi:</p>
+          <div class="bg-slate-900 text-emerald-400 p-3 rounded-lg font-mono text-[10px] space-y-1">
+            <div>> pg_dump -h db.spp-ppm.gov.my -U ppm_admin --format=custom --blobs</div>
+            <div>> Enkripsi AES-256 selesai: spp_ppm_backup_20261027.dump.enc</div>
+            <div>> Memeriksa checksum integriti SHA-256... [PADAN]</div>
+            <div>> Ujian pemulihan ke Staging Sandbox... [SELESAI DALAM 12.4s]</div>
+            <div class="text-white font-bold">> STATUS: RPO < 24 jam & RTO < 8 jam DISAHKAN PATUH (NFR-07)</div>
+          </div>
+        </div>
+        `
+      );
+      logAuditAction('SIMULASI_BACKUP_DRILL', 'Ujian pemulihan sandaran berjaya dilaksanakan tanpa ralat.');
+    }
+
+    // --- INITIAL STARTUP ---
+    window.addEventListener('DOMContentLoaded', () => {
+      navigateTo('m02_portal');
+    });
+
+  </script>
+</body>
+</html>
